@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "skpipe"
+version = "0.1.0"
+description = "SeriesKeeper 영상 분석 파이프라인 (컷 분할 + 얼굴 일관성 검사)"
+requires-python = ">=3.11"
+dependencies = [
+  "scenedetect>=0.7",
+  "opencv-python>=4.8",
+  "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+skpipe = "skpipe.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
