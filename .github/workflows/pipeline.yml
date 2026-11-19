@@ -1,0 +1,36 @@
+name: pipeline
+
+on:
+  push:
+    branches: [main]
+    paths: ["pipeline/**"]
+  pull_request:
+    paths: ["pipeline/**"]
+
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pipeline
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pipeline/pyproject.toml
+
+      - name: OpenCV 런타임 라이브러리
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libgl1
+
+      - name: 의존성 설치
+        run: python -m pip install -e ".[dev]"
+
+      - name: 테스트
+        run: python -m pytest -v
