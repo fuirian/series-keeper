@@ -5,9 +5,11 @@ import { useActionState } from "react";
 import { login } from "@/app/actions/auth";
 import { FieldError, FormMessage, inputClass, submitClass } from "@/components/form";
 
-export function LoginForm() {
+export function LoginForm({ notice }: { notice?: string }) {
   const [state, action, pending] = useActionState(login, undefined);
   const errors = state?.errors ?? {};
+  // 제출 결과 메시지가 있으면 그걸, 없으면 주소로 넘어온 안내를 보여 준다
+  const message = state?.message ?? (state ? undefined : notice);
 
   return (
     <form action={action} className="flex flex-col gap-4" noValidate>
@@ -45,7 +47,7 @@ export function LoginForm() {
         <FieldError id="password-error" message={errors.password} />
       </div>
 
-      <FormMessage message={state?.message} />
+      <FormMessage message={message} />
 
       <button type="submit" disabled={pending} className={submitClass}>
         {pending ? "확인 중…" : "로그인"}

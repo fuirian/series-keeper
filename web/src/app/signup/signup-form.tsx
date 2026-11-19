@@ -9,6 +9,17 @@ export function SignupForm() {
   const [state, action, pending] = useActionState(signup, undefined);
   const errors = state?.errors ?? {};
 
+  if (state?.success) {
+    return (
+      <div className="flex flex-col gap-4">
+        <FormMessage message={state.message} />
+        <Link href="/login" className={`${submitClass} text-center`}>
+          로그인하러 가기
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <form action={action} className="flex flex-col gap-4" noValidate>
       <div>
