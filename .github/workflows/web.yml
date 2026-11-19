@@ -33,7 +33,7 @@ jobs:
         run: npm run lint
 
       - name: 타입 검사
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
       - name: 빌드
         run: npm run build
