@@ -1,0 +1,13 @@
+# 샘플 미디어 (용량·저작권 문제로 커밋하지 않음)
+samples/**/*.mp4
+samples/**/*.mov
+samples/**/*.mkv
+samples/**/*.webm
+samples/**/*.png
+samples/**/*.jpg
+samples/**/*.jpeg
+samples/**/*.webp
+
+# OS
+.DS_Store
+Thumbs.db

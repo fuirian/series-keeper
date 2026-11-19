@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SeriesKeeper 와이어프레임</title>
+<style>
+  :root { --line:#9a9a9a; --fill:#ececec; --ink:#222; --muted:#777; --bad:#c0392b; --ok:#2e7d32; --bg:#fafafa; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 system-ui, "Malgun Gothic", sans-serif; }
+  header.doc { padding:24px 16px 8px; max-width:1100px; margin:auto; }
+  header.doc h1 { margin:0 0 4px; font-size:22px; }
+  header.doc p { margin:0; color:var(--muted); }
+  nav.toc { max-width:1100px; margin:12px auto 0; padding:0 16px; display:flex; gap:8px; flex-wrap:wrap; }
+  nav.toc a { border:1px solid var(--line); padding:4px 10px; border-radius:16px; color:var(--ink); text-decoration:none; background:#fff; }
+  section.screen { max-width:1100px; margin:28px auto; padding:0 16px; }
+  section.screen > h2 { font-size:16px; margin:0 0 4px; }
+  section.screen > p.note { margin:0 0 10px; color:var(--muted); }
+  .frame { border:2px solid var(--ink); background:#fff; border-radius:6px; overflow:hidden; }
+  .topbar { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid var(--line); }
+  .logo { font-weight:700; }
+  .crumb { color:var(--muted); }
+  .body { padding:16px; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; }
+  .box { border:1px dashed var(--line); background:var(--fill); border-radius:4px; display:flex; align-items:center; justify-content:center; color:var(--muted); text-align:center; }
+  .btn { display:inline-block; border:1.5px solid var(--ink); border-radius:4px; padding:4px 12px; background:#fff; font-size:13px; }
+  .btn.primary { background:var(--ink); color:#fff; }
+  .card { border:1px solid var(--line); border-radius:6px; padding:10px; background:#fff; }
+  .tabs { display:flex; gap:16px; border-bottom:1px solid var(--line); margin-bottom:14px; }
+  .tabs span { padding:6px 0; color:var(--muted); }
+  .tabs span.on { color:var(--ink); border-bottom:2px solid var(--ink); font-weight:600; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { border-bottom:1px solid #ddd; padding:8px 6px; text-align:left; vertical-align:middle; }
+  th { color:var(--muted); font-weight:500; }
+  .tag { font-size:12px; border:1px solid var(--line); border-radius:10px; padding:1px 8px; white-space:nowrap; }
+  .bad { color:var(--bad); border-color:var(--bad); }
+  .ok { color:var(--ok); border-color:var(--ok); }
+  .anno { color:#1565c0; font-size:12px; margin-top:6px; }
+  .anno::before { content:"✎ "; }
+  .grow { flex:1 1 260px; min-width:0; }
+  .scroll { overflow-x:auto; }
+  @media (max-width:640px){ .hide-sm { display:none; } }
+</style>
+</head>
+<body>
+<header class="doc">
+  <h1>SeriesKeeper — MVP 화면 와이어프레임</h1>
+  <p>1주차 저충실도 스케치. 회색 박스 = 이미지·영상 자리, 파란 글씨 = 설계 메모.</p>
+</header>
+<nav class="toc">
+  <a href="#s1">① 시리즈 목록</a>
+  <a href="#s2">② 시리즈 바이블</a>
+  <a href="#s3">③ 회차 업로드·상태</a>
+  <a href="#s4">④ 검수 리포트</a>
+  <a href="#s5">⑤ 컷 비교</a>
+</nav>
+
+<!-- ① 시리즈 목록 -->
+<section class="screen" id="s1">
+  <h2>① 시리즈 목록 (로그인 후 첫 화면)</h2>
+  <p class="note">내가 만든 시리즈를 카드로 보여 준다. 미해결 이슈 수가 바로 보이게.</p>
+  <div class="frame">
+    <div class="topbar"><span class="logo">SeriesKeeper</span><span class="btn">계정 ▾</span></div>
+    <div class="body">
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong>내 시리즈</strong><span class="btn primary">+ 새 시리즈</span>
+      </div>
+      <div class="row">
+        <div class="card grow">
+          <div class="box" style="height:110px">대표 이미지</div>
+          <div style="margin-top:8px"><strong>달빛 하숙집</strong> <span class="tag">애니체</span></div>
+          <div class="crumb">12화 · 캐릭터 5 · 장소 3</div>
+          <div style="margin-top:6px"><span class="tag bad">미해결 이슈 7</span></div>
+        </div>
+        <div class="card grow">
+          <div class="box" style="height:110px">대표 이미지</div>
+          <div style="margin-top:8px"><strong>오피스 로맨스</strong> <span class="tag">실사</span></div>
+          <div class="crumb">4화 · 캐릭터 3 · 장소 2</div>
+          <div style="margin-top:6px"><span class="tag ok">이슈 없음</span></div>
+        </div>
+        <div class="card grow box" style="min-height:200px">+ 새 시리즈 만들기</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ② 시리즈 바이블 -->
+<section class="screen" id="s2">
+  <h2>② 시리즈 바이블 — 캐릭터 탭</h2>
+  <p class="note">캐릭터·장소별로 레퍼런스 이미지와 외형 설명을 관리한다.</p>
+  <div class="frame">
+    <div class="topbar"><span><span class="logo">SeriesKeeper</span> <span class="crumb">/ 달빛 하숙집</span></span><span class="btn">계정 ▾</span></div>
+    <div class="body">
+      <div class="tabs"><span>회차</span><span class="on">캐릭터</span><span>장소</span><span>설정</span></div>
+      <div class="row">
+        <div class="card" style="flex:0 0 200px">
+          <div style="font-weight:600;margin-bottom:6px">캐릭터 (5)</div>
+          <div style="padding:6px;background:var(--fill);border-radius:4px">● 하린 (주인공)</div>
+          <div style="padding:6px">○ 도윤</div>
+          <div style="padding:6px">○ 집주인 할머니</div>
+          <div style="padding:6px">○ …</div>
+          <div class="btn" style="margin-top:8px">+ 캐릭터 추가</div>
+        </div>
+        <div class="card grow">
+          <div class="row" style="justify-content:space-between"><strong>하린</strong><span class="btn">편집</span></div>
+          <div style="margin:10px 0 4px;color:var(--muted)">레퍼런스 이미지</div>
+          <div class="row">
+            <div class="box" style="width:96px;height:96px">정면<br>(필수)</div>
+            <div class="box" style="width:96px;height:96px">측면</div>
+            <div class="box" style="width:96px;height:96px">후면</div>
+            <div class="box" style="width:96px;height:96px">전신</div>
+            <div class="box" style="width:96px;height:96px;background:#fff">+ 추가</div>
+          </div>
+          <div class="anno">각도별 슬롯. 정면 없으면 검사 불가 안내. 얼굴 영역은 자동 크롭해 미리보기로 확인시킴 (조사: 전신 이미지는 얼굴 기준으로 약함)</div>
+          <div style="margin:12px 0 4px;color:var(--muted)">외형 설명 <span class="tag">AI 생성</span></div>
+          <div class="box" style="height:70px;justify-content:flex-start;padding:8px;text-align:left">"20대 초반 여성, 어깨까지 오는 검은 단발, 둥근 눈, 왼쪽 눈 밑 점. 주로 베이지 니트…"</div>
+          <div class="row" style="margin-top:6px"><span class="btn">다시 생성</span><span class="btn">직접 수정</span></div>
+          <div class="anno">비전 LLM이 레퍼런스에서 생성 → 사용자가 고쳐서 확정. 확장 2의 프롬프트 내보내기에 재사용</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ③ 회차 업로드·상태 -->
+<section class="screen" id="s3">
+  <h2>③ 회차 목록 · 업로드</h2>
+  <p class="note">영상을 올리면 분석이 비동기로 돌아가고, 진행 상태를 목록에서 본다.</p>
+  <div class="frame">
+    <div class="topbar"><span><span class="logo">SeriesKeeper</span> <span class="crumb">/ 달빛 하숙집</span></span><span class="btn">계정 ▾</span></div>
+    <div class="body">
+      <div class="tabs"><span class="on">회차</span><span>캐릭터</span><span>장소</span><span>설정</span></div>
+      <div class="box" style="height:90px;margin-bottom:14px;border-width:2px">영상 파일을 끌어다 놓거나 클릭해서 업로드 (mp4, 최대 10분)<br>회차 번호: [ 13 ]</div>
+      <div class="scroll">
+      <table>
+        <tr><th>회차</th><th class="hide-sm">길이</th><th>상태</th><th>컷</th><th>이슈</th><th></th></tr>
+        <tr><td>13화</td><td class="hide-sm">8:42</td><td>분석 중 — 컷 분할 완료, 얼굴 비교 40% ▓▓▓▓░░░░░░</td><td>96</td><td>–</td><td></td></tr>
+        <tr><td>12화</td><td class="hide-sm">9:10</td><td><span class="tag ok">완료</span></td><td>104</td><td><span class="tag bad">5</span></td><td><span class="btn">리포트</span></td></tr>
+        <tr><td>11화</td><td class="hide-sm">8:55</td><td><span class="tag ok">완료</span></td><td>99</td><td><span class="tag">0</span></td><td><span class="btn">리포트</span></td></tr>
+        <tr><td>10화</td><td class="hide-sm">7:30</td><td><span class="tag bad">실패</span></td><td>–</td><td>–</td><td><span class="btn">다시 시도</span></td></tr>
+      </table>
+      </div>
+      <div class="anno">상태 = 대기 · 분석중 · 완료 (+ 실패). 단계별 진행률은 워커가 DB에 기록 → 폴링으로 갱신</div>
+    </div>
+  </div>
+</section>
+
+<!-- ④ 검수 리포트 -->
+<section class="screen" id="s4">
+  <h2>④ 검수 리포트 (12화)</h2>
+  <p class="note">문제 컷만 점수 낮은 순으로. 타임코드·사유·점수가 한 줄에.</p>
+  <div class="frame">
+    <div class="topbar"><span><span class="logo">SeriesKeeper</span> <span class="crumb">/ 달빛 하숙집 / 12화 리포트</span></span><span class="btn">계정 ▾</span></div>
+    <div class="body">
+      <div class="row" style="margin-bottom:12px">
+        <div class="card grow"><div class="crumb">전체 컷</div><strong style="font-size:20px">104</strong></div>
+        <div class="card grow"><div class="crumb">이슈</div><strong style="font-size:20px;color:var(--bad)">5</strong></div>
+        <div class="card grow"><div class="crumb">해결</div><strong style="font-size:20px">0 / 5</strong></div>
+      </div>
+      <div class="row" style="gap:8px;margin-bottom:10px"><span class="tag">캐릭터: 전체 ▾</span><span class="tag">유형: 얼굴 ▾</span><span class="tag">미해결만 ☑</span></div>
+      <div class="scroll">
+      <table>
+        <tr><th>썸네일</th><th>타임코드</th><th>인물</th><th>사유</th><th>유사도</th><th></th></tr>
+        <tr><td><div class="box" style="width:80px;height:45px">컷</div></td><td>03:12–03:16</td><td>하린</td><td>얼굴 유사도 낮음</td><td><span class="tag bad">0.41</span></td><td><span class="btn">비교 ▸</span></td></tr>
+        <tr><td><div class="box" style="width:80px;height:45px">컷</div></td><td>05:47–05:50</td><td>하린?</td><td>인물 매칭 불확실 (하린 0.52 / 도윤 0.49)</td><td><span class="tag bad">0.52</span></td><td><span class="btn">비교 ▸</span></td></tr>
+        <tr><td><div class="box" style="width:80px;height:45px">컷</div></td><td>07:02–07:09</td><td>도윤</td><td>얼굴 유사도 낮음</td><td><span class="tag bad">0.55</span></td><td><span class="btn">비교 ▸</span></td></tr>
+        <tr><td colspan="6" class="crumb">… 2개 더</td></tr>
+      </table>
+      </div>
+      <div class="anno">임계값은 2주차 측정 후 결정. "누구인지 불확실" 케이스(닮은 인물)는 별도 사유로 표시</div>
+    </div>
+  </div>
+</section>
+
+<!-- ⑤ 컷 비교 -->
+<section class="screen" id="s5">
+  <h2>⑤ 컷 비교 (리포트 행 클릭 시)</h2>
+  <p class="note">지금 크리에이터들이 손으로 하는 "나란히 놓고 보기"를 그대로 재현.</p>
+  <div class="frame">
+    <div class="topbar"><span><span class="logo">SeriesKeeper</span> <span class="crumb">/ 12화 / 03:12 컷</span></span><span class="btn">✕ 닫기</span></div>
+    <div class="body">
+      <div class="row">
+        <div class="grow">
+          <div class="crumb">바이블 레퍼런스 — 하린 (정면)</div>
+          <div class="box" style="height:200px">레퍼런스 얼굴</div>
+        </div>
+        <div class="grow">
+          <div class="crumb">12화 03:12 — 검출된 얼굴</div>
+          <div class="box" style="height:200px;border-color:var(--bad)">컷 대표 프레임 + 얼굴 박스</div>
+        </div>
+        <div class="grow">
+          <div class="crumb">이전 회차 같은 인물 (11화 02:40)</div>
+          <div class="box" style="height:200px">비교용 컷</div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px;align-items:center;justify-content:space-between">
+        <div>유사도 <strong style="color:var(--bad)">0.41</strong> <span class="crumb">(기준 0.60)</span></div>
+        <div class="row" style="gap:8px">
+          <span class="btn">◀ 이전 이슈</span>
+          <span class="btn">오탐으로 표시</span>
+          <span class="btn primary">해결됨 (재생성 예정)</span>
+          <span class="btn">다음 이슈 ▶</span>
+        </div>
+      </div>
+      <div class="anno">"오탐으로 표시" 데이터는 임계값 조정과 성공 지표(정밀도) 측정에 재사용. 영상 미니 플레이어로 앞뒤 2초 재생도 고려</div>
+    </div>
+  </div>
+</section>
+</body>
+</html>
