@@ -20,7 +20,7 @@ samples/
     refs/          캐릭터·장소 레퍼런스 이미지
     ep01.mp4
     ep02.mp4
-    labels.csv     (2주차) 컷별 정답: 타임코드, 인물, 일관성 OK/NG
+    ep01.labels.csv  (2주차) 회차별 정답 라벨: time,character,label (label = ok/ng)
 ```
 
 ## 목록

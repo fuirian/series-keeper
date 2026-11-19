@@ -11,3 +11,13 @@ samples/**/*.webp
 # OS
 .DS_Store
 Thumbs.db
+
+# Python
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+
+# 파이프라인 모델·출력
+pipeline/models/
+pipeline/out/
