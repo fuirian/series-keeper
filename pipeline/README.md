@@ -55,12 +55,12 @@ samples/달빛하숙집/refs/도윤/front.png
 ```
 (위 숫자는 출력 형식 예시)
 
-**임계값 평가** — `labels.csv`를 만들고 (형식은 [evaluate.py](src/skpipe/evaluate.py) 맨 위 주석)
+**임계값 평가** — 회차별 `ep01.labels.csv`를 만들고 (형식은 [evaluate.py](src/skpipe/evaluate.py) 맨 위 주석)
 
 ```powershell
-.venv\Scripts\skpipe evaluate out\ep01.json --labels ..\samples\달빛하숙집\labels.csv
+.venv\Scripts\skpipe evaluate out\ep01.json --labels ..\samples\달빛하숙집\ep01.labels.csv
 # 여러 회차 묶어서
-.venv\Scripts\skpipe evaluate --pair out\ep01.json ep01.labels.csv --pair out\ep02.json ep02.labels.csv
+.venv\Scripts\skpipe evaluate --pair out\ep01.json ..\samples\달빛하숙집\ep01.labels.csv --pair out\ep02.json ..\samples\달빛하숙집\ep02.labels.csv
 ```
 
 임계값 0.20~0.70 구간에서 정밀도·재현율·F1 표와, ok/ng 컷의 유사도 분포를 보여 준다. 결과 JSON에 얼굴마다 모든 캐릭터와의 유사도가 남아 있어서 **영상을 다시 분석하지 않고** 임계값만 바꿔 평가할 수 있다.
