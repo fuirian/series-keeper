@@ -23,4 +23,8 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  /* 한국어가 글자 중간("회/차")에서 끊기지 않고 단어 단위로 줄바꿈되게 */
+  word-break: keep-all;
+  /* 단, 이메일·URL처럼 아주 긴 단어는 화면 밖으로 넘치지 않게 끊는다 */
+  overflow-wrap: break-word;
 }
