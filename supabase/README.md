@@ -21,6 +21,7 @@
 | `20261120000400_create_episodes.sql` | `episode` 테이블(분석 상태 포함), 비공개 영상 버킷 `episodes` (파일당 50MB) |
 | `20261120000500_create_analysis.sql` | 분석 결과 `shot`·`issue` 테이블, 회차 분석 정보 컬럼, 워커용 `claim_next_episode()` 함수 |
 | `20261120000600_issue_review.sql` | 이슈 `resolved`(예/아니오) → `review`(미처리·해결됨·오탐) |
+| `20261120000700_episode_uploaded_status.sql` | 회차 `uploaded`(검사 전) 상태 — 업로드 후 '검사하기'를 눌러야 검사 대기 |
 
 ## 원칙
 

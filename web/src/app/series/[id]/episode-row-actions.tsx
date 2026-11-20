@@ -11,14 +11,14 @@ export function EpisodeRowActions({
   episodeId,
   label,
   videoUrl,
-  canReanalyze,
+  requestLabel,
   reportHref,
 }: {
   seriesId: string;
   episodeId: string;
   label: string;
   videoUrl: string | null;
-  canReanalyze: boolean;
+  requestLabel: string | null; // "검사하기" | "다시 검사" | null(검사 대기·중)
   reportHref: string | null; // 분석이 끝난 회차만
 }) {
   const router = useRouter();
@@ -48,14 +48,18 @@ export function EpisodeRowActions({
   return (
     <div className="flex flex-col items-end gap-2">
       <div className="flex gap-1">
-        {canReanalyze && (
+        {requestLabel && (
           <button
             type="button"
             onClick={handleReanalyze}
             disabled={isPending}
-            className="rounded-md px-2 py-1 text-xs hover:bg-black/5 disabled:opacity-50 dark:hover:bg-white/10"
+            className={
+              requestLabel === "검사하기"
+                ? "rounded-md bg-foreground px-2 py-1 text-xs font-medium text-background hover:opacity-90 disabled:opacity-50"
+                : "rounded-md px-2 py-1 text-xs hover:bg-black/5 disabled:opacity-50 dark:hover:bg-white/10"
+            }
           >
-            다시 분석
+            {isPending ? "요청 중…" : requestLabel}
           </button>
         )}
         {videoUrl && (

@@ -248,8 +248,10 @@ async function Report({
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">{heading}</h1>
         <p className="mt-4 text-sm text-black/60 dark:text-white/60">
           {episode.status === "failed"
-            ? `분석에 실패했습니다: ${episode.analysis_error ?? "이유 없음"}`
-            : `아직 리포트가 없습니다 (${STATUS_LABELS[episode.status]}). 분석이 끝나면 여기에 표시됩니다.`}
+            ? `검사에 실패했습니다: ${episode.analysis_error ?? "이유 없음"}`
+            : episode.status === "uploaded"
+              ? "아직 검사하지 않은 회차입니다. 회차 목록에서 '검사하기'를 눌러 주세요."
+              : `아직 리포트가 없습니다 (${STATUS_LABELS[episode.status]}). 검사가 끝나면 여기에 표시됩니다.`}
         </p>
       </>
     );

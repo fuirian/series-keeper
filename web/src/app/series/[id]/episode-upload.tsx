@@ -146,7 +146,7 @@ export function EpisodeUpload({ userId, seriesId, nextNumber }: { userId: string
     formRef.current?.reset();
     setFile(null);
     setDurationMs(null);
-    setMessage(`${number}화를 등록했습니다.`);
+    setMessage(`${number}화를 등록했습니다. 아래 목록에서 검사하기를 누르면 검사가 시작됩니다.`);
     startTransition(() => router.refresh());
   }
 
