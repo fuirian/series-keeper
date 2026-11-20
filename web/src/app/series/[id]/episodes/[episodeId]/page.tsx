@@ -220,7 +220,7 @@ async function Report({
 
   const base = `/series/${seriesId}/episodes/${episodeId}`;
   const back = (
-    <Link href={`/series/${seriesId}`} className="text-sm text-black/50 hover:text-foreground dark:text-white/50">
+    <Link href={`/series/${seriesId}?tab=episodes`} className="text-sm text-black/50 hover:text-foreground dark:text-white/50">
       ← {series.title} 회차 목록
     </Link>
   );
