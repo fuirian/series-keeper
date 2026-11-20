@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { deleteEpisode } from "@/app/actions/episodes";
+import { deleteEpisode, requestAnalysis } from "@/app/actions/episodes";
 
 /** 회차 행의 미리보기·삭제 버튼. */
 export function EpisodeRowActions({
@@ -10,11 +10,13 @@ export function EpisodeRowActions({
   episodeId,
   label,
   videoUrl,
+  canReanalyze,
 }: {
   seriesId: string;
   episodeId: string;
   label: string;
   videoUrl: string | null;
+  canReanalyze: boolean;
 }) {
   const router = useRouter();
   const [showVideo, setShowVideo] = useState(false);
@@ -31,9 +33,28 @@ export function EpisodeRowActions({
     });
   }
 
+  function handleReanalyze() {
+    setError(null);
+    startTransition(async () => {
+      const result = await requestAnalysis({ seriesId, episodeId });
+      if (!result.ok) setError(result.message);
+      else router.refresh();
+    });
+  }
+
   return (
     <div className="flex flex-col items-end gap-2">
       <div className="flex gap-1">
+        {canReanalyze && (
+          <button
+            type="button"
+            onClick={handleReanalyze}
+            disabled={isPending}
+            className="rounded-md px-2 py-1 text-xs hover:bg-black/5 disabled:opacity-50 dark:hover:bg-white/10"
+          >
+            다시 분석
+          </button>
+        )}
         {videoUrl && (
           <button
             type="button"

@@ -15,6 +15,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+# 분석 워커 (Supabase에서 회차를 가져와 분석하고 결과를 저장)
+worker = ["supabase>=2.10"]
 
 [project.scripts]
 skpipe = "skpipe.cli:main"

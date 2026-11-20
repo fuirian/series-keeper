@@ -119,3 +119,23 @@ export async function deleteEpisode(input: { seriesId: string; episodeId: string
   revalidatePath(`/series/${seriesId}`);
   return { ok: true };
 }
+
+/** 완료·실패한 회차를 다시 '분석 대기'로 돌린다 (본인 회차인지는 DB 함수가 확인). */
+export async function requestAnalysis(input: { seriesId: string; episodeId: string }): Promise<EpisodeActionResult> {
+  await requireUser();
+  const { seriesId, episodeId } = input;
+  if (!isUuid(seriesId) || !isUuid(episodeId)) return { ok: false, message: "잘못된 요청입니다." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("request_episode_analysis", { p_episode_id: episodeId });
+  if (error) {
+    console.error("requestAnalysis", error);
+    if (error.code === "PGRST202")
+      return { ok: false, message: "분석 SQL이 아직 적용되지 않았습니다. 20261120000500_create_analysis.sql을 실행해 주세요." };
+    return { ok: false, message: "다시 분석을 요청하지 못했습니다." };
+  }
+  if (!data) return { ok: false, message: "이미 분석 대기 중이거나 분석 중인 회차입니다." };
+
+  revalidatePath(`/series/${seriesId}`);
+  return { ok: true };
+}
