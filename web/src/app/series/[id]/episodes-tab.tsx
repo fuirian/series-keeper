@@ -84,6 +84,7 @@ export async function EpisodesTab({ seriesId, userId }: { seriesId: string; user
                   label={label}
                   videoUrl={ep.video_url}
                   canReanalyze={ep.status === "done" || ep.status === "failed"}
+                  reportHref={ep.status === "done" ? `/series/${seriesId}/episodes/${ep.id}` : null}
                 />
               </li>
             );
