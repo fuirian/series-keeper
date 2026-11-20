@@ -1,0 +1,119 @@
+{
+  "id": "20261120-164228-실험2-색-특징-추가",
+  "kind": "bench",
+  "name": "실험2 색 특징 추가",
+  "note": "실험1과 같은 데이터. yunet-dino-color(DINOv2 0.6 + Lab 색 0.4) 추가, 판정 기준(검출 80%·쌍 10개) 적용",
+  "created_at": "2026-11-20T16:42:28",
+  "git": {
+    "commit": "5981333",
+    "branch": "feat/anime-backends",
+    "dirty": true
+  },
+  "dataset": {
+    "path": "samples/faces",
+    "characters": 2,
+    "images": 12,
+    "per_character": {
+      "a": 6,
+      "b": 6
+    },
+    "fingerprint": "3f6be87122cc"
+  },
+  "environment": {
+    "python": "3.12.10",
+    "os": "Windows 11",
+    "cpu": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "packages": {
+      "skpipe": "0.1.0",
+      "opencv-python": "4.14.0.94",
+      "numpy": "2.5.5",
+      "torch": "2.15.0+cpu",
+      "transformers": "5.23.0",
+      "scenedetect": "0.7.3"
+    }
+  },
+  "backend_thresholds": {
+    "opencv": {
+      "unknown_below": 0.25,
+      "issue_below": 0.45,
+      "ambiguous_margin": 0.05
+    },
+    "yunet-dino": {
+      "unknown_below": 0.35,
+      "issue_below": 0.6,
+      "ambiguous_margin": 0.03
+    },
+    "anime-dino": {
+      "unknown_below": 0.35,
+      "issue_below": 0.6,
+      "ambiguous_margin": 0.03
+    },
+    "yunet-dino-color": {
+      "unknown_below": 0.35,
+      "issue_below": 0.65,
+      "ambiguous_margin": 0.03
+    }
+  },
+  "results": [
+    {
+      "backend": "opencv",
+      "images": 12,
+      "detected": 12,
+      "detection_rate": 1.0,
+      "pos_pairs": 30,
+      "neg_pairs": 36,
+      "pos_mean": 0.5395248806104064,
+      "neg_mean": 0.555293949941794,
+      "auc": 0.5027777777777778,
+      "threshold": 0.7004877924919128,
+      "balanced_acc": 0.5527777777777778,
+      "id_acc": 0.4166666666666667,
+      "ms_per_image": 23.51230832573492
+    },
+    {
+      "backend": "yunet-dino",
+      "images": 12,
+      "detected": 12,
+      "detection_rate": 1.0,
+      "pos_pairs": 30,
+      "neg_pairs": 36,
+      "pos_mean": 0.775146339337031,
+      "neg_mean": 0.7566351426972283,
+      "auc": 0.5703703703703704,
+      "threshold": 0.7930867671966553,
+      "balanced_acc": 0.6166666666666667,
+      "id_acc": 0.8333333333333334,
+      "ms_per_image": 80.82556667310807
+    },
+    {
+      "backend": "anime-dino",
+      "images": 12,
+      "detected": 4,
+      "detection_rate": 0.3333333333333333,
+      "pos_pairs": 3,
+      "neg_pairs": 3,
+      "pos_mean": 0.7978928089141846,
+      "neg_mean": 0.7265141805013021,
+      "auc": 0.7777777777777778,
+      "threshold": 0.8037111759185791,
+      "balanced_acc": 0.8333333333333333,
+      "id_acc": 1.0,
+      "ms_per_image": 127.27499999649201
+    },
+    {
+      "backend": "yunet-dino-color",
+      "images": 12,
+      "detected": 12,
+      "detection_rate": 1.0,
+      "pos_pairs": 30,
+      "neg_pairs": 36,
+      "pos_mean": 0.8454860011736552,
+      "neg_mean": 0.8271252728170819,
+      "auc": 0.6111111111111112,
+      "threshold": 0.8524789810180664,
+      "balanced_acc": 0.6444444444444444,
+      "id_acc": 0.8333333333333334,
+      "ms_per_image": 89.49205833293188
+    }
+  ]
+}
