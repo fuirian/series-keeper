@@ -9,7 +9,8 @@ description = "SeriesKeeper 영상 분석 파이프라인 (컷 분할 + 얼굴 �
 requires-python = ">=3.11"
 dependencies = [
   "scenedetect>=0.7",
-  "opencv-python>=4.8",
+  # 5.x에서 CascadeClassifier(애니 얼굴 검출에 사용)가 본체에서 빠져서 4.x로 고정
+  "opencv-python>=4.8,<5",
   "numpy>=1.26",
 ]
 
@@ -17,6 +18,9 @@ dependencies = [
 dev = ["pytest>=8"]
 # 분석 워커 (Supabase에서 회차를 가져와 분석하고 결과를 저장)
 worker = ["supabase>=2.10"]
+# 애니·3D용 DINOv2 임베딩 (yunet-dino, anime-dino 백엔드)
+# CPU용 torch가 가볍다: pip install torch --index-url https://download.pytorch.org/whl/cpu
+anime = ["torch>=2.2", "transformers>=4.45"]
 
 [project.scripts]
 skpipe = "skpipe.cli:main"

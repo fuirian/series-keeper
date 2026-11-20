@@ -1,0 +1,99 @@
+{
+  "id": "20261120-160111-실험0-실사-동작-확인",
+  "kind": "bench",
+  "name": "실험0 실사 동작 확인",
+  "note": "새 백엔드와 bench 도구 동작 확인용. 실사 2명x4장 변형, 정확도 측정 아님",
+  "created_at": "2026-11-20T16:01:11",
+  "git": {
+    "commit": "8943822",
+    "branch": "feat/analysis-worker",
+    "dirty": true
+  },
+  "dataset": {
+    "path": "(저장소 밖) faces",
+    "characters": 2,
+    "images": 8,
+    "per_character": {
+      "astronaut": 4,
+      "messi": 4
+    },
+    "fingerprint": "329d773afb17"
+  },
+  "environment": {
+    "python": "3.12.10",
+    "os": "Windows 11",
+    "cpu": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "packages": {
+      "skpipe": "0.1.0",
+      "opencv-python": "4.14.0.94",
+      "numpy": "2.5.5",
+      "torch": "2.15.0+cpu",
+      "transformers": "5.23.0",
+      "scenedetect": "0.7.3"
+    }
+  },
+  "backend_thresholds": {
+    "opencv": {
+      "unknown_below": 0.25,
+      "issue_below": 0.45,
+      "ambiguous_margin": 0.05
+    },
+    "yunet-dino": {
+      "unknown_below": 0.35,
+      "issue_below": 0.6,
+      "ambiguous_margin": 0.03
+    },
+    "anime-dino": {
+      "unknown_below": 0.35,
+      "issue_below": 0.6,
+      "ambiguous_margin": 0.03
+    }
+  },
+  "results": [
+    {
+      "backend": "opencv",
+      "images": 8,
+      "detected": 8,
+      "detection_rate": 1.0,
+      "pos_pairs": 12,
+      "neg_pairs": 16,
+      "pos_mean": 0.900421733657519,
+      "neg_mean": 0.08865351905114949,
+      "auc": 1.0,
+      "threshold": 0.8475058078765869,
+      "balanced_acc": 1.0,
+      "id_acc": 1.0,
+      "ms_per_image": 29.245087505842093
+    },
+    {
+      "backend": "yunet-dino",
+      "images": 8,
+      "detected": 8,
+      "detection_rate": 1.0,
+      "pos_pairs": 12,
+      "neg_pairs": 16,
+      "pos_mean": 0.8918627748886744,
+      "neg_mean": 0.3174365945160389,
+      "auc": 1.0,
+      "threshold": 0.7408012747764587,
+      "balanced_acc": 1.0,
+      "id_acc": 1.0,
+      "ms_per_image": 83.65010001580231
+    },
+    {
+      "backend": "anime-dino",
+      "images": 8,
+      "detected": 1,
+      "detection_rate": 0.125,
+      "pos_pairs": 0,
+      "neg_pairs": 0,
+      "pos_mean": NaN,
+      "neg_mean": NaN,
+      "auc": NaN,
+      "threshold": NaN,
+      "balanced_acc": NaN,
+      "id_acc": NaN,
+      "ms_per_image": 165.36229999474017
+    }
+  ]
+}

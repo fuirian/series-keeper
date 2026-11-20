@@ -57,9 +57,48 @@
 | 모델 라이선스 | Apache-2.0 (상업적 사용 가능) | 사전학습 모델은 비상업 연구용 |
 | 임베딩 | 128차원, ArcFace 계열 | 512차원, ArcFace |
 
-`faces.FaceAnalyzer` 프로토콜만 맞추면 백엔드를 바꿀 수 있다. 애니체에서 정확도가 낮으면 애니 얼굴 검출기나 CLIP/DINOv2로 교체한다 (계획서 리스크 대응).
-
 첫 확인 (OpenCV 샘플 이미지): 같은 인물(좌우반전·축소·밝기 변경) **0.862**, 다른 인물 **0.127**.
+
+## 얼굴 분석 백엔드 (화풍별)
+
+YuNet·SFace는 **실사 얼굴로 학습한 모델**이라 애니체에서는 얼굴을 못 찾거나 캐릭터를 구분하지 못할 수 있다 (계획서 최대 리스크).
+그래서 얼굴 분석을 **검출기 + 임베더** 조합으로 나누고, 화풍에 맞는 조합을 고른다 (`backends.py`).
+
+| 백엔드 | 검출기 | 임베더 | 쓰는 화풍 | 임시 기준값 (issue_below) |
+| --- | --- | --- | --- | --- |
+| `opencv` | YuNet | SFace (얼굴 인식, 128차원) | 실사 | 0.45 |
+| `yunet-dino` | YuNet | DINOv2-small (범용 시각 특징, 384차원) | 기타 (3D·반실사) | 0.60 |
+| `anime-dino` | lbpcascade_animeface | DINOv2-small | 애니체 | 0.60 |
+
+- **lbpcascade_animeface** (MIT): 애니 얼굴용 LBP 캐스케이드. CPU에서 매우 빠르고 파일 하나(약 250KB).
+- **DINOv2** (Meta, Apache-2.0): 얼굴 전용이 아닌 자기지도 학습 범용 특징 모델. 그림체·머리 모양·색까지 반영해서 캐릭터 구분에 유리할 것으로 기대한다. 얼굴 박스를 정사각형으로 넓혀(머리카락·윤곽 포함) 넣는다.
+- 분석 워커는 **시리즈 화풍**(웹의 `series.style`)으로 백엔드를 자동으로 고르고, 어떤 백엔드를 썼는지 분석 요약에 남긴다.
+- 기준값은 백엔드마다 유사도 분포가 달라서 따로 둔다. 위 값은 **임시**이며 아래 `bench` 결과로 정한다.
+
+### 백엔드 비교 실험 (`skpipe bench`)
+
+캐릭터별 폴더에 얼굴이 보이는 이미지를 모은다 (회차·각도·표정이 섞일수록 좋다. 캐릭터당 5장 이상 권장).
+
+```
+faces/
+  하린/    ep01_0312.png  ep02_0105.png  ...
+  도윤/    ...
+  _other/  (선택) 바이블에 없는 엑스트라
+```
+
+```powershell
+.venv\Scripts\skpipe bench ..\samples\faces --json out\bench.json
+```
+
+| 지표 | 뜻 |
+| --- | --- |
+| 검출률 | 얼굴을 찾은 이미지 비율 (애니체에서 실사 검출기가 얼마나 놓치는지) |
+| AUC | 같은 인물 쌍과 다른 인물 쌍을 유사도로 얼마나 잘 가르는지 (1.0 완벽, 0.5 무작위) |
+| 최적 기준 · 균형 정확도 | 같은/다른 인물을 가장 잘 가르는 유사도와 그때 정확도 → `issue_below` 후보 |
+| 식별 정확도 | 한 장씩 빼고 캐릭터 평균과 비교해 맞는 캐릭터를 고르는 비율 |
+| ms/장 | 이미지 한 장 처리 시간 (CPU) |
+
+결과 표가 백엔드를 고르고 기준값을 정하는 근거가 된다.
 
 ## 설치
 
@@ -68,6 +107,10 @@ cd pipeline
 python -m venv .venv
 .venv\Scripts\python -m pip install -e ".[dev]"
 .venv\Scripts\skpipe models   # 모델 파일(약 39MB)을 pipeline/models/에 내려받음
+
+# 애니·3D 백엔드(DINOv2)까지 쓰려면 (CPU용 torch 약 200MB, DINOv2 모델 약 90MB는 처음 쓸 때 받음)
+.venv\Scripts\python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+.venv\Scripts\python -m pip install -e ".[dev,worker,anime]"
 ```
 
 ## 사용법

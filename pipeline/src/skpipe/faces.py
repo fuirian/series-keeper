@@ -23,6 +23,11 @@ _ZOO = "https://github.com/opencv/opencv_zoo/raw/main/models"
 MODELS = {
     "yunet": ("face_detection_yunet_2023mar.onnx", f"{_ZOO}/face_detection_yunet/face_detection_yunet_2023mar.onnx"),
     "sface": ("face_recognition_sface_2021dec.onnx", f"{_ZOO}/face_recognition_sface/face_recognition_sface_2021dec.onnx"),
+    # 애니 얼굴 검출 (nagadomi/lbpcascade_animeface, MIT)
+    "animeface": (
+        "lbpcascade_animeface.xml",
+        "https://raw.githubusercontent.com/nagadomi/lbpcascade_animeface/master/lbpcascade_animeface.xml",
+    ),
 }
 
 

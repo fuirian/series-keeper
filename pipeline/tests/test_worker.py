@@ -25,6 +25,17 @@ DOYUN = "22222222-2222-2222-2222-222222222222"
 TH = Thresholds(0.25, 0.45, 0.05)
 
 
+class FakePool:
+    """화풍 → 가짜 분석기. 어떤 화풍으로 불렸는지 기록한다."""
+
+    def __init__(self):
+        self.styles = []
+
+    def for_style(self, style):
+        self.styles.append(style)
+        return ColorAnalyzer(), TH, f"fake-{style}"
+
+
 def solid_png(bgr) -> bytes:
     ok, buf = cv2.imencode(".png", np.full((120, 160, 3), bgr, dtype=np.uint8))
     assert ok
@@ -53,6 +64,9 @@ class FakeStore:
 
     def claim(self):
         return self.episodes.pop(0) if self.episodes else None
+
+    def series_style(self, series_id):
+        return "anime"
 
     def characters(self, series_id):
         return self._characters
@@ -117,10 +131,11 @@ def test_process_episode_saves_shots_issues_and_summary(store, tmp_path):
 
 def test_run_one_marks_failed_without_references(synthetic_video):
     store = FakeStore(synthetic_video.read_bytes(), [{"id": HARIN, "name": "하린", "reference_image": []}], {})
-    assert run_one(store, ColorAnalyzer(), TH) is True
+    pool = FakePool()
+    assert run_one(store, pool) is True
     assert store.failed is not None and "레퍼런스 사진이 없습니다" in store.failed
     assert store.finished is None
-    assert run_one(store, ColorAnalyzer(), TH) is False  # 더 처리할 회차 없음
+    assert run_one(store, pool) is False  # 더 처리할 회차 없음
 
 
 def test_run_one_hides_unexpected_errors(store):
@@ -128,7 +143,7 @@ def test_run_one_hides_unexpected_errors(store):
         raise RuntimeError("db exploded: secret details")
 
     store.insert_shots = boom
-    run_one(store, ColorAnalyzer(), TH)
+    run_one(store, FakePool())
     assert store.failed == "분석 중 오류가 발생했습니다. 잠시 후 다시 분석해 주세요."  # 내부 오류 내용은 노출하지 않음
 
 
@@ -171,3 +186,10 @@ def test_load_env_file_does_not_override(tmp_path, monkeypatch):
 
     assert os.environ["SK_TEST_A"] == "already-set"
     assert os.environ["SK_TEST_B"] == "quoted"
+
+
+def test_run_one_picks_backend_by_series_style(store):
+    pool = FakePool()
+    assert run_one(store, pool) is True
+    assert pool.styles == ["anime"]  # 시리즈 화풍으로 백엔드를 고른다
+    assert store.finished["backend"] == "fake-anime"  # 어떤 백엔드로 분석했는지 요약에 남긴다
