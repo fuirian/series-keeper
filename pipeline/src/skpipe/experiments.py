@@ -22,7 +22,7 @@ from datetime import datetime
 from importlib import metadata
 from pathlib import Path
 
-from .bench import OTHER_DIR, BenchResult
+from .bench import OTHER_DIR, BenchResult, is_reliable, reliability_issues
 from .bible import IMAGE_EXTS
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -96,23 +96,26 @@ def _fmt(x: float, pct: bool = False) -> str:
 
 def markdown_table(results: list[BenchResult]) -> str:
     lines = [
-        "| 백엔드 | 검출률 | AUC | 최적 기준 | 균형 정확도 | 식별 정확도 | 같은 인물 평균 | 다른 인물 평균 | ms/장 |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| 백엔드 | 검출률 | AUC | 최적 기준 | 균형 정확도 | 식별 정확도 | 같은 인물 평균 | 다른 인물 평균 | ms/장 | 신뢰도 |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for r in results:
         lines.append(
             f"| {r.backend} | {_fmt(r.detection_rate, True)} | {_fmt(r.auc)} | {_fmt(r.threshold)} | "
             f"{_fmt(r.balanced_acc, True)} | {_fmt(r.id_acc, True)} | {_fmt(r.pos_mean)} | {_fmt(r.neg_mean)} | "
-            f"{r.ms_per_image:.0f} |"
+            f"{r.ms_per_image:.0f} | {'✓' if is_reliable(r) else '⚠ ' + ('; '.join(reliability_issues(r)) or 'AUC 계산 불가')} |"
         )
     return "\n".join(lines)
 
 
 def best_backend(results: list[BenchResult]) -> str:
-    """AUC가 가장 높은 백엔드 (동점이면 검출률). 비교할 수 없으면 '–'."""
-    valid = [r for r in results if r.auc == r.auc]
+    """신뢰할 수 있는 결과 중 AUC가 가장 높은 백엔드 (동점이면 검출률).
+
+    검출률·비교 쌍 수가 모자란 결과는 AUC가 높아도 뽑지 않는다 (실험 1의 교훈).
+    """
+    valid = [r for r in results if is_reliable(r)]
     if not valid:
-        return "–"
+        return "판정 불가 (데이터 부족)" if results else "–"
     best = max(valid, key=lambda r: (r.auc, r.detection_rate))
     return f"{best.backend} (AUC {best.auc:.3f})"
 

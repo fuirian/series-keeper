@@ -131,3 +131,71 @@ def test_load_samples_reads_folders(tmp_path):
 @pytest.mark.parametrize("name", list(BACKENDS))
 def test_backends_have_descriptions(name):
     assert BACKENDS[name].description
+
+
+# ───────── 색 특징 (실험 1 후속) ─────────
+
+from skpipe.backends import ColorEmbedder, FusedEmbedder  # noqa: E402
+from skpipe.bench import BenchResult, is_reliable, reliability_issues  # noqa: E402
+from skpipe.experiments import best_backend  # noqa: E402
+
+
+def portrait(hair_bgr, skin_bgr=(150, 180, 220), sweater_bgr=(140, 170, 200)):
+    """머리카락(위)·얼굴(가운데)·옷(아래)으로 된 단순한 초상. 얼굴 박스는 가운데."""
+    img = np.full((200, 200, 3), (230, 230, 230), np.uint8)
+    cv2.rectangle(img, (40, 10), (160, 90), hair_bgr, -1)  # 머리카락
+    cv2.rectangle(img, (65, 60), (135, 140), skin_bgr, -1)  # 얼굴
+    cv2.rectangle(img, (30, 140), (170, 200), sweater_bgr, -1)  # 니트
+    return img, (65, 60, 70, 80)
+
+
+def test_color_embedder_separates_black_and_brown_hair():
+    emb = ColorEmbedder()
+    black1, box = portrait((20, 20, 20))
+    black2, _ = portrait((30, 25, 25))  # 거의 같은 검정
+    brown, _ = portrait((40, 70, 120))  # 갈색 (BGR)
+    e1, e2, e3 = (emb.embed(img, box) for img in (black1, black2, brown))
+    same, diff = float(e1 @ e2), float(e1 @ e3)
+    assert same > 0.95
+    assert diff < same - 0.2  # 머리색만 달라도 확실히 떨어진다
+
+
+def test_fused_similarity_is_weighted_sum():
+    a_vecs = {"x": vec(1, 0, 0), "y": vec(0.6, 0.8, 0)}
+    b_vecs = {"x": vec(0, 1, 0), "y": vec(0, 0.6, 0.8)}
+
+    class Lookup:
+        def __init__(self, table):
+            self.table = table
+
+        def embed(self, image, bbox):
+            return self.table[image]
+
+    fused = FusedEmbedder([(Lookup(a_vecs), 3.0), (Lookup(b_vecs), 2.0)])  # 합이 1이 아니어도 정규화
+    fx, fy = fused.embed("x", None), fused.embed("y", None)
+    expected = 0.6 * float(a_vecs["x"] @ a_vecs["y"]) + 0.4 * float(b_vecs["x"] @ b_vecs["y"])
+    assert math.isclose(float(fx @ fy), expected, rel_tol=1e-5)
+    assert math.isclose(float(np.linalg.norm(fx)), 1.0, rel_tol=1e-5)
+
+
+def test_fused_rejects_zero_weights():
+    with pytest.raises(ValueError):
+        FusedEmbedder([(MeanColorEmbedder(), 0.0)])
+
+
+def bench_result(backend, auc, det=1.0, pos=30, neg=36):
+    return BenchResult(backend, 12, int(12 * det), det, pos, neg, 0.8, 0.5, auc, 0.6, 0.8, 0.9, 50.0)
+
+
+def test_reliability_rules_from_experiment_1():
+    low_det = bench_result("anime-dino", 0.778, det=0.33, pos=3, neg=3)  # 실험 1의 anime-dino
+    assert not is_reliable(low_det)
+    reasons = " ".join(reliability_issues(low_det))
+    assert "검출 33%" in reasons and "비교 쌍 부족" in reasons
+    assert is_reliable(bench_result("yunet-dino", 0.57))
+
+
+def test_best_backend_skips_unreliable_high_auc():
+    results = [bench_result("opencv", 0.50), bench_result("yunet-dino", 0.57), bench_result("anime-dino", 0.78, det=0.33, pos=3, neg=3)]
+    assert best_backend(results) == "yunet-dino (AUC 0.570)"
+    assert best_backend([bench_result("anime-dino", 0.78, det=0.33, pos=3, neg=3)]) == "판정 불가 (데이터 부족)"

@@ -21,7 +21,7 @@ def make_dataset(root):
 
 
 def result(backend, auc, det=1.0):
-    return BenchResult(backend, 4, 4, det, 1, 5, 0.9, 0.2, auc, 0.6, 0.9, 1.0, 30.0)
+    return BenchResult(backend, 12, int(12 * det), det, 30, 36, 0.9, 0.2, auc, 0.6, 0.9, 1.0, 30.0)
 
 
 def test_slugify_keeps_korean():
@@ -45,7 +45,8 @@ def test_describe_dataset_counts_and_fingerprint(tmp_path):
 
 def test_best_backend_ignores_nan():
     assert best_backend([result("a", 0.8), result("b", float("nan")), result("c", 0.9)]) == "c (AUC 0.900)"
-    assert best_backend([result("a", float("nan"))]) == "–"
+    assert best_backend([result("a", float("nan"))]) == "판정 불가 (데이터 부족)"
+    assert best_backend([]) == "–"
 
 
 def test_record_bench_writes_files_and_log_row(tmp_path):

@@ -5,6 +5,7 @@
 | opencv      | YuNet                      | SFace (ArcFace 계열) | 실사                   |
 | yunet-dino  | YuNet                      | DINOv2-small        | 3D·반실사              |
 | anime-dino  | lbpcascade_animeface       | DINOv2-small        | 애니·만화체            |
+| yunet-dino-color | YuNet                 | DINOv2 0.6 + 색 0.4 | 실험용 (머리색 구분)   |
 
 SFace는 실사 얼굴로 학습한 '얼굴 인식' 모델이라 애니 캐릭터 구분에 약할 수 있다.
 DINOv2는 얼굴 전용이 아닌 범용 시각 특징 모델(자기지도 학습)이라 그림체 캐릭터도 구분할 것으로 기대.
@@ -121,6 +122,57 @@ class DinoEmbedder:
         return l2_normalize(out.pooler_output[0].cpu().numpy())
 
 
+class ColorEmbedder:
+    """얼굴 주변(머리카락 포함) 색 분포.
+
+    얼굴 인식 모델·DINOv2는 색에 둔감하게 학습돼서 '머리색만 다른' 캐릭터를 못 가른다 (실험 1).
+    그런데 이 서비스에서는 머리색·옷 색이 바뀐 것이 바로 잡아야 할 오류라서 색을 따로 본다.
+
+    - 사람 눈에 가까운 Lab 색공간 3D 히스토그램 (밝기 4 × a 7 × b 7 = 196칸)
+      a·b 칸 수를 홀수로 둔다: 검정·회색·흰색 같은 무채색은 a·b가 128 근처라,
+      짝수 칸이면 칸 경계에 걸려 거의 같은 색이 서로 다른 칸으로 갈린다
+    - 위쪽 띠(머리카락·이마)와 전체를 따로 계산해 이어 붙인다
+    - 히스토그램에 제곱근(헬링거)을 씌워 코사인 유사도가 분포 겹침 정도를 뜻하게 한다
+    """
+
+    BINS = (4, 7, 7)
+    TOP_BAND = 0.45  # 잘라낸 영역 위쪽 45% = 머리카락·이마
+
+    def __init__(self, margin: float = 0.35, size: int = 128):
+        self.margin = margin
+        self.size = size
+
+    def _hist(self, lab: np.ndarray) -> np.ndarray:
+        h = cv2.calcHist([lab], [0, 1, 2], None, list(self.BINS), [0, 256, 0, 256, 0, 256]).ravel()
+        total = h.sum()
+        return np.sqrt(h / total) if total > 0 else h
+
+    def embed(self, image: np.ndarray, bbox: BBox) -> np.ndarray:
+        crop = cv2.resize(crop_with_margin(image, bbox, self.margin), (self.size, self.size), interpolation=cv2.INTER_AREA)
+        lab = cv2.cvtColor(crop, cv2.COLOR_BGR2LAB)
+        top = lab[: int(self.size * self.TOP_BAND)]
+        return l2_normalize(np.concatenate([self._hist(top), self._hist(lab)]))
+
+
+class FusedEmbedder:
+    """여러 임베딩을 가중치로 합친다.
+
+    각 부분을 L2 정규화하고 √가중치를 곱해 이어 붙이면(가중치 합 1),
+    합친 벡터의 코사인 유사도 = Σ 가중치 × 각 부분의 코사인 유사도 가 된다.
+    """
+
+    def __init__(self, parts: list[tuple[Embedder, float]]):
+        total = sum(w for _, w in parts)
+        if total <= 0:
+            raise ValueError("가중치 합이 0보다 커야 합니다")
+        self.parts = [(e, w / total) for e, w in parts]
+
+    def embed(self, image: np.ndarray, bbox: BBox) -> np.ndarray:
+        return np.concatenate(
+            [np.sqrt(w) * l2_normalize(e.embed(image, bbox)) for e, w in self.parts]
+        ).astype(np.float32)
+
+
 # ───────── 조합 ─────────
 
 
@@ -182,6 +234,14 @@ BACKENDS: dict[str, Backend] = {
         "애니 얼굴 캐스케이드 + DINOv2 (애니·만화체)",
         Thresholds(unknown_below=0.35, issue_below=0.60, ambiguous_margin=0.03),
         lambda d: ComposedAnalyzer("anime-dino", AnimeCascadeDetector(d), _dino(d)),
+    ),
+    "yunet-dino-color": Backend(
+        "yunet-dino-color",
+        "YuNet + DINOv2 0.6·색 0.4 (머리색·옷 색 차이까지)",
+        Thresholds(unknown_below=0.35, issue_below=0.65, ambiguous_margin=0.03),
+        lambda d: ComposedAnalyzer(
+            "yunet-dino-color", YuNetDetector(d), FusedEmbedder([(_dino(d), 0.6), (ColorEmbedder(), 0.4)])
+        ),
     ),
 }
 

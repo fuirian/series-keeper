@@ -28,6 +28,10 @@ from .faces import FaceAnalyzer, l2_normalize
 
 OTHER_DIR = "_other"
 
+# 이보다 못하면 숫자를 믿을 수 없다 (실험 1에서 검출 33%·비교 쌍 6개로 잘못된 결론이 나온 뒤 추가)
+MIN_DETECTION_RATE = 0.8
+MIN_PAIRS = 10
+
 
 @dataclass
 class Sample:
@@ -147,6 +151,20 @@ def evaluate_samples(backend: str, samples: list[Sample], elapsed_s: float) -> B
     )
 
 
+def reliability_issues(r: BenchResult) -> list[str]:
+    """이 결과를 다른 백엔드와 비교하면 안 되는 이유. 비어 있으면 비교 가능."""
+    issues = []
+    if not (r.detection_rate >= MIN_DETECTION_RATE):
+        issues.append(f"검출 {r.detection_rate:.0%} < {MIN_DETECTION_RATE:.0%}")
+    if r.pos_pairs < MIN_PAIRS or r.neg_pairs < MIN_PAIRS:
+        issues.append(f"비교 쌍 부족 (같은 {r.pos_pairs}·다른 {r.neg_pairs}, 각 {MIN_PAIRS} 이상 필요)")
+    return issues
+
+
+def is_reliable(r: BenchResult) -> bool:
+    return not reliability_issues(r) and r.auc == r.auc
+
+
 def format_table(results: list[BenchResult]) -> str:
     def f(x: float, pct: bool = False) -> str:
         if x != x:  # nan
@@ -160,6 +178,7 @@ def format_table(results: list[BenchResult]) -> str:
             f"{r.backend:<12}  {f(r.detection_rate, True):>5}   {f(r.auc)}  {f(r.threshold):>7}  "
             f"{f(r.balanced_acc, True):>9}  {f(r.id_acc, True):>9}  {f(r.pos_mean):>11}  {f(r.neg_mean):>11}  "
             f"{r.ms_per_image:6.0f}"
+            + ("" if is_reliable(r) else f"  ⚠ 신뢰도 낮음: {'; '.join(reliability_issues(r)) or 'AUC 계산 불가'}")
         )
     lines.append("")
     lines.append("검출률 = 얼굴을 찾은 이미지 비율 / AUC = 같은·다른 인물 구분력(1.0 완벽, 0.5 무작위)")
