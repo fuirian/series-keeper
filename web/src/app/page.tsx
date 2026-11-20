@@ -82,8 +82,10 @@ function Landing() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
       <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">SeriesKeeper</h1>
-      <p className="max-w-md text-black/60 dark:text-white/60">
-        AI로 만든 연재물의 캐릭터·장소를 시리즈 단위로 관리하고, 회차마다 달라진 컷을 찾아 줍니다.
+      <p className="max-w-lg text-black/60 dark:text-white/60">
+        AI로 만든 연재물의 캐릭터·장소를 시리즈 단위로 관리하고,
+        <br />
+        회차마다 달라진 컷을 찾아 줍니다.
       </p>
     </div>
   );

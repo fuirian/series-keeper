@@ -3,6 +3,7 @@
     skpipe models                                  # 모델 파일 내려받기
     skpipe analyze VIDEO --refs REFS_DIR -o out.json [--keyframes DIR]
     skpipe evaluate out.json --labels labels.csv   # 여러 쌍이면 --pair out.json labels.csv 반복
+    skpipe worker [--once]                         # 분석 워커 (pipeline/.env의 Supabase 설정 사용)
 """
 
 from __future__ import annotations
@@ -81,6 +82,19 @@ def cmd_evaluate(args) -> int:
     return 0
 
 
+def cmd_worker(args) -> int:
+    import logging
+
+    from .worker import SupabaseStore, config_from_env, load_env_file, run_forever
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S")
+    load_env_file(Path(args.env))
+    config = config_from_env()
+    store = SupabaseStore(config.url, config.secret_key)
+    run_forever(store, _analyzer(Path(args.model_dir)), config.poll_seconds, once=args.once)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="skpipe", description="SeriesKeeper 분석 파이프라인")
     p.add_argument("--model-dir", default=str(DEFAULT_MODEL_DIR))
@@ -108,6 +122,11 @@ def build_parser() -> argparse.ArgumentParser:
     e.add_argument("--max", type=float, default=0.70)
     e.add_argument("--step", type=float, default=0.025)
     e.set_defaults(func=cmd_evaluate)
+
+    w = sub.add_parser("worker", help="분석 워커 실행 (Supabase의 분석 대기 회차를 처리)")
+    w.add_argument("--once", action="store_true", help="대기 회차를 모두 처리하면 종료 (기본: 계속 대기)")
+    w.add_argument("--env", default=str(Path(__file__).resolve().parents[2] / ".env"), help=".env 파일 경로")
+    w.set_defaults(func=cmd_worker)
     return p
 
 

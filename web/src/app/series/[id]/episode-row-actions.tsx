@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { deleteEpisode } from "@/app/actions/episodes";
+import { deleteEpisode, requestAnalysis } from "@/app/actions/episodes";
 
 /** 회차 행의 미리보기·삭제 버튼. */
 export function EpisodeRowActions({
@@ -10,11 +11,15 @@ export function EpisodeRowActions({
   episodeId,
   label,
   videoUrl,
+  canReanalyze,
+  reportHref,
 }: {
   seriesId: string;
   episodeId: string;
   label: string;
   videoUrl: string | null;
+  canReanalyze: boolean;
+  reportHref: string | null; // 분석이 끝난 회차만
 }) {
   const router = useRouter();
   const [showVideo, setShowVideo] = useState(false);
@@ -31,9 +36,28 @@ export function EpisodeRowActions({
     });
   }
 
+  function handleReanalyze() {
+    setError(null);
+    startTransition(async () => {
+      const result = await requestAnalysis({ seriesId, episodeId });
+      if (!result.ok) setError(result.message);
+      else router.refresh();
+    });
+  }
+
   return (
     <div className="flex flex-col items-end gap-2">
       <div className="flex gap-1">
+        {canReanalyze && (
+          <button
+            type="button"
+            onClick={handleReanalyze}
+            disabled={isPending}
+            className="rounded-md px-2 py-1 text-xs hover:bg-black/5 disabled:opacity-50 dark:hover:bg-white/10"
+          >
+            다시 분석
+          </button>
+        )}
         {videoUrl && (
           <button
             type="button"
@@ -43,14 +67,23 @@ export function EpisodeRowActions({
             {showVideo ? "닫기" : "미리보기"}
           </button>
         )}
-        <button
-          type="button"
-          disabled
-          title="분석 기능을 붙이면 열립니다"
-          className="rounded-md px-2 py-1 text-xs text-black/30 dark:text-white/30"
-        >
-          리포트
-        </button>
+        {reportHref ? (
+          <Link
+            href={reportHref}
+            className="rounded-md bg-foreground px-2 py-1 text-xs font-medium text-background hover:opacity-90"
+          >
+            리포트
+          </Link>
+        ) : (
+          <button
+            type="button"
+            disabled
+            title="분석이 끝나면 열립니다"
+            className="rounded-md px-2 py-1 text-xs text-black/30 dark:text-white/30"
+          >
+            리포트
+          </button>
+        )}
         <button
           type="button"
           onClick={handleDelete}

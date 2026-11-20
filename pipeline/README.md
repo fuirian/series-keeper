@@ -1,11 +1,50 @@
-# skpipe — 분석 파이프라인 (2주차 PoC)
+# skpipe — 분석 파이프라인과 분석 워커
 
 회차 영상을 컷으로 나누고, 컷마다 등장인물 얼굴을 시리즈 바이블 레퍼런스와 비교해 **일관성이 깨진 컷**을 찾는다.
-3주차에는 이 코드를 그대로 분석 워커(Celery/RQ)가 불러 쓴다.
+같은 코드를 분석 워커(`skpipe worker`)가 불러 써서, 웹에서 올린 회차를 실제로 분석한다.
 
 ```
 영상 ─▶ 컷 분할 (PySceneDetect) ─▶ 컷당 대표 프레임 3장 ─▶ 얼굴 검출·임베딩 ─▶ 바이블과 코사인 유사도 ─▶ 이슈
 ```
+
+## 분석 워커
+
+웹과 따로 도는 프로세스. Supabase의 **분석 대기** 회차를 하나씩 가져와 분석하고 결과를 저장한다.
+
+```
+웹: 회차 업로드 (status = pending)
+          │
+          ▼
+워커: claim_next_episode()  ── pending 하나를 processing으로 바꾸며 가져옴 (FOR UPDATE SKIP LOCKED)
+      영상·캐릭터 레퍼런스 내려받기 → analyze_episode() → shot·issue 저장, 이슈 프레임 이미지 업로드
+      status = done (또는 failed + 이유)
+          │
+          ▼
+웹: 회차 탭에 컷 수·이슈 수 / 실패 이유 표시, "다시 분석" 버튼
+```
+
+- **큐는 Postgres로 충분하다.** 계획서에는 Redis + Celery로 적었지만, `episode.status`가 이미 큐 역할을 한다. 여러 워커가 동시에 떠도 `SKIP LOCKED` 덕분에 같은 회차를 집지 않는다. 30분 넘게 "분석 중"인 회차(워커가 죽은 경우)는 다시 가져간다.
+- **Secret key(service_role)로 접속한다.** RLS를 건너뛰므로 `owner_id`를 직접 채운다. 이 키는 `pipeline/.env`에만 두고, 웹이나 git에 절대 넣지 않는다.
+- **실패 이유는 사용자에게 보이는 문장으로 남긴다** (레퍼런스 사진 없음, 얼굴을 못 찾음, 영상을 못 엶). 예상하지 못한 오류는 내부 내용을 숨기고 일반 문구만 남긴다.
+
+### 실행
+
+1. Supabase SQL Editor에서 `supabase/migrations/20261120000500_create_analysis.sql` 실행 (한 번만)
+2. Secret key 준비: 대시보드 → **Project Settings → API Keys → Secret keys**
+3. 설정 파일
+   ```powershell
+   Copy-Item pipeline\.env.example pipeline\.env   # SUPABASE_URL, SUPABASE_SECRET_KEY 채우기
+   ```
+4. 설치와 실행
+   ```powershell
+   cd pipeline
+   .venv\Scripts\python -m pip install -e ".[dev,worker]"
+   .venv\Scripts\skpipe models    # 얼굴 모델 (처음 한 번)
+   .venv\Scripts\skpipe worker    # 계속 대기하며 처리. 멈출 때 Ctrl+C
+   ```
+   대기 중인 회차만 처리하고 끝내려면 `skpipe worker --once`.
+
+지금은 로컬 PC에서 돌린다. 배포는 이 프로세스를 서버(예: Fly.io, Railway, 작은 VM)에서 계속 돌리면 된다.
 
 ## 얼굴 모델 선택
 
