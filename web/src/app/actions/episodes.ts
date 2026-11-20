@@ -55,7 +55,8 @@ export async function createEpisode(input: {
   path: string;
   sizeBytes: number;
   durationMs: number | null;
-}): Promise<EpisodeActionResult> {
+  startCheck?: boolean; // true면 등록 직후 바로 검사 요청 ('업로드하고 바로 검사')
+}): Promise<{ ok: true; checkRequested: boolean } | { ok: false; message: string }> {
   const user = await requireUser();
   const title = input.title.trim();
   const { seriesId, number, path } = input;
@@ -77,14 +78,18 @@ export async function createEpisode(input: {
 
   const supabase = await createClient();
   // 남의 시리즈면 RLS(insert 정책)가 막는다. status는 기본값 'pending'
-  const { error } = await supabase.from("episode").insert({
-    series_id: seriesId,
-    number,
-    title: title || null,
-    video_path: path,
-    size_bytes: sizeBytes,
-    duration_ms: durationMs,
-  });
+  const { data: created, error } = await supabase
+    .from("episode")
+    .insert({
+      series_id: seriesId,
+      number,
+      title: title || null,
+      video_path: path,
+      size_bytes: sizeBytes,
+      duration_ms: durationMs,
+    })
+    .select("id")
+    .single();
 
   if (error) {
     console.error("createEpisode", error);
@@ -93,8 +98,18 @@ export async function createEpisode(input: {
     return { ok: false, message: dbErrorMessage(error.code, "회차를 등록하지 못했습니다.") };
   }
 
+  // '업로드하고 바로 검사': 본인 회차 확인은 DB 함수가 한다
+  let checkRequested = false;
+  if (input.startCheck) {
+    const { data: changed, error: rpcError } = await supabase.rpc("request_episode_analysis", {
+      p_episode_id: created.id,
+    });
+    if (rpcError) console.error("createEpisode startCheck", rpcError);
+    checkRequested = Boolean(changed);
+  }
+
   revalidatePath(`/series/${seriesId}`);
-  return { ok: true };
+  return { ok: true, checkRequested };
 }
 
 export async function deleteEpisode(input: { seriesId: string; episodeId: string }): Promise<EpisodeActionResult> {
