@@ -108,6 +108,9 @@ export function EpisodeUpload({ userId, seriesId, nextNumber }: { userId: string
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // 어떤 버튼으로 제출했는지: '업로드' / '업로드하고 바로 검사'
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const startCheck = submitter?.name === "check";
     setMessage(undefined);
     const form = new FormData(e.currentTarget);
     const number = Number(form.get("number"));
@@ -139,14 +142,20 @@ export function EpisodeUpload({ userId, seriesId, nextNumber }: { userId: string
       return setMessage("업로드에 실패했습니다. 파일 크기(50MB)와 저장소 설정(SQL)을 확인해 주세요.");
     }
 
-    const result = await createEpisode({ seriesId, number, title, path, sizeBytes: file.size, durationMs });
+    const result = await createEpisode({ seriesId, number, title, path, sizeBytes: file.size, durationMs, startCheck });
     setProgress(null);
     if (!result.ok) return setMessage(result.message);
 
     formRef.current?.reset();
     setFile(null);
     setDurationMs(null);
-    setMessage(`${number}화를 등록했습니다. 아래 목록에서 검사하기를 누르면 검사가 시작됩니다.`);
+    setMessage(
+      result.checkRequested
+        ? `${number}화를 등록하고 검사를 요청했습니다. 분석 워커가 차례로 처리합니다.`
+        : startCheck
+          ? `${number}화를 등록했지만 검사 요청에 실패했습니다. 아래 목록에서 검사하기를 눌러 주세요.`
+          : `${number}화를 등록했습니다. 아래 목록에서 검사하기를 누르면 검사가 시작됩니다.`,
+    );
     startTransition(() => router.refresh());
   }
 
@@ -249,9 +258,23 @@ export function EpisodeUpload({ userId, seriesId, nextNumber }: { userId: string
       <FormMessage message={message} />
 
       <div>
-        <button type="submit" disabled={uploading || isPending} className={submitClass}>
-          {uploading ? "올리는 중…" : "업로드"}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="submit"
+            name="upload"
+            disabled={uploading || isPending}
+            className="mt-2 rounded-md border border-black/15 px-4 py-2 text-sm font-medium hover:bg-black/5 disabled:opacity-50 dark:border-white/20 dark:hover:bg-white/10"
+          >
+            {uploading ? "올리는 중…" : "업로드"}
+          </button>
+          <button type="submit" name="check" disabled={uploading || isPending} className={submitClass}>
+            업로드하고 바로 검사
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-black/50 dark:text-white/50">
+          캐릭터 탭에 정면 사진을 등록했다면 &lsquo;업로드하고 바로 검사&rsquo;를, 아직이면 &lsquo;업로드&rsquo; 후 나중에
+          검사하기를 누르세요.
+        </p>
       </div>
     </form>
   );

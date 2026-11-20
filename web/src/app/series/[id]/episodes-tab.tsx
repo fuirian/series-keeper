@@ -44,7 +44,10 @@ export async function EpisodesTab({ seriesId, userId }: { seriesId: string; user
       <EpisodeUpload userId={userId} seriesId={seriesId} nextNumber={nextNumber} />
 
       {episodes.length === 0 ? (
-        <p className="text-sm text-black/50 dark:text-white/50">아직 올린 회차가 없습니다.</p>
+        <p className="rounded-lg border border-dashed border-black/15 px-4 py-8 text-center text-sm text-black/50 dark:border-white/20 dark:text-white/50">
+          아직 올린 회차가 없습니다. 위에서 영상을 올리면 여기에 회차가 생기고, 회차 옆에 <strong>검사하기</strong> 버튼이
+          나옵니다.
+        </p>
       ) : (
         <ul className="divide-y divide-black/10 rounded-lg border border-black/10 dark:divide-white/15 dark:border-white/15">
           {episodes.map((ep) => {
