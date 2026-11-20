@@ -8,22 +8,27 @@ const dateFormat = new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeZ
 
 function SeriesCard({ series }: { series: Series }) {
   return (
-    <li className="flex flex-col rounded-lg border border-black/10 p-4 dark:border-white/15">
-      <div className="mb-3 flex aspect-video items-center justify-center rounded-md bg-black/5 text-xs text-black/40 dark:bg-white/5 dark:text-white/40">
-        대표 이미지 없음
-      </div>
-      <div className="flex items-center gap-2">
-        <h3 className="truncate font-semibold">{series.title}</h3>
-        <span className="shrink-0 rounded-full border border-black/15 px-2 py-0.5 text-xs dark:border-white/20">
-          {STYLE_LABELS[series.style] ?? series.style}
-        </span>
-      </div>
-      {series.style_note && (
-        <p className="mt-1 line-clamp-2 text-sm text-black/60 dark:text-white/60">{series.style_note}</p>
-      )}
-      <p className="mt-auto pt-3 text-xs text-black/50 dark:text-white/50">
-        {dateFormat.format(new Date(series.created_at))} 생성
-      </p>
+    <li>
+      <Link
+        href={`/series/${series.id}`}
+        className="flex h-full flex-col rounded-lg border border-black/10 p-4 transition-colors hover:border-foreground dark:border-white/15"
+      >
+        <div className="mb-3 flex aspect-video items-center justify-center rounded-md bg-black/5 text-xs text-black/40 dark:bg-white/5 dark:text-white/40">
+          대표 이미지 없음
+        </div>
+        <div className="flex items-center gap-2">
+          <h3 className="truncate font-semibold">{series.title}</h3>
+          <span className="shrink-0 rounded-full border border-black/15 px-2 py-0.5 text-xs dark:border-white/20">
+            {STYLE_LABELS[series.style] ?? series.style}
+          </span>
+        </div>
+        {series.style_note && (
+          <p className="mt-1 line-clamp-2 text-sm text-black/60 dark:text-white/60">{series.style_note}</p>
+        )}
+        <p className="mt-auto pt-3 text-xs text-black/50 dark:text-white/50">
+          {dateFormat.format(new Date(series.created_at))} 생성
+        </p>
+      </Link>
     </li>
   );
 }

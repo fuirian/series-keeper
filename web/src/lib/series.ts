@@ -41,3 +41,28 @@ export async function listMySeries(): Promise<SeriesListResult> {
   }
   return { ok: true, series: (data ?? []) as Series[] };
 }
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isUuid(value: string): boolean {
+  return UUID_RE.test(value);
+}
+
+/**
+ * 시리즈 하나. 없거나 다른 사람 것이면 null (RLS 때문에 남의 시리즈는 '없는 것'으로 보인다).
+ */
+export async function getSeries(id: string): Promise<Series | null> {
+  if (!isUuid(id)) return null; // 형식이 틀린 id로 DB 오류가 나지 않게
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("series")
+    .select("id, title, style, style_note, created_at")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("getSeries", error);
+    return null;
+  }
+  return (data as Series | null) ?? null;
+}
