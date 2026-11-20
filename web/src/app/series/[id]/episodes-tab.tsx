@@ -1,0 +1,72 @@
+import { formatBytes, formatDuration, STATUS_LABELS, type EpisodeStatus } from "@/lib/episode-constants";
+import { listEpisodes } from "@/lib/episodes";
+import { EpisodeRowActions } from "./episode-row-actions";
+import { EpisodeUpload } from "./episode-upload";
+
+const dateFormat = new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeZone: "Asia/Seoul" });
+
+const STATUS_STYLES: Record<EpisodeStatus, string> = {
+  pending: "border-black/15 text-black/60 dark:border-white/20 dark:text-white/60",
+  processing: "border-blue-600/40 text-blue-700 dark:border-blue-400/40 dark:text-blue-300",
+  done: "border-green-700/40 text-green-800 dark:border-green-400/40 dark:text-green-300",
+  failed: "border-red-600/40 text-red-700 dark:border-red-400/40 dark:text-red-300",
+};
+
+/** 회차 탭: 영상 업로드 + 회차 목록(분석 상태). */
+export async function EpisodesTab({ seriesId, userId }: { seriesId: string; userId: string }) {
+  const result = await listEpisodes(seriesId);
+
+  if (!result.ok) {
+    return (
+      <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
+        {result.reason === "missing_table"
+          ? "DB에 회차 테이블이 없습니다. supabase/migrations/20261120000400_create_episodes.sql을 Supabase SQL Editor에서 실행해 주세요."
+          : result.reason === "no_permission"
+            ? "회차 테이블 권한이 없습니다. 마이그레이션 SQL이 끝까지 실행됐는지 확인해 주세요."
+            : "회차를 불러오지 못했습니다. 잠시 후 새로고침해 주세요."}
+      </p>
+    );
+  }
+
+  const { episodes } = result;
+  const nextNumber = episodes.length > 0 ? Math.max(...episodes.map((e) => e.number)) + 1 : 1;
+
+  return (
+    <div className="flex flex-col gap-6">
+      <p className="text-sm text-black/60 dark:text-white/60">
+        회차 영상을 올리면 컷을 나누고, 캐릭터가 바이블과 다르게 나온 컷을 찾아 리포트로 보여 줍니다.{" "}
+        <span className="text-black/40 dark:text-white/40">(분석 기능은 준비 중이라 지금은 &lsquo;분석 대기&rsquo;로 남습니다)</span>
+      </p>
+
+      <EpisodeUpload userId={userId} seriesId={seriesId} nextNumber={nextNumber} />
+
+      {episodes.length === 0 ? (
+        <p className="text-sm text-black/50 dark:text-white/50">아직 올린 회차가 없습니다.</p>
+      ) : (
+        <ul className="divide-y divide-black/10 rounded-lg border border-black/10 dark:divide-white/15 dark:border-white/15">
+          {episodes.map((ep) => {
+            const label = `${ep.number}화`;
+            return (
+              <li key={ep.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold tabular-nums">{label}</span>
+                    {ep.title && <span className="truncate">{ep.title}</span>}
+                    <span className={`rounded-full border px-2 py-0.5 text-xs ${STATUS_STYLES[ep.status]}`}>
+                      {STATUS_LABELS[ep.status]}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-black/50 dark:text-white/50">
+                    {formatDuration(ep.duration_ms)} · {formatBytes(ep.size_bytes)} ·{" "}
+                    {dateFormat.format(new Date(ep.created_at))} 업로드
+                  </p>
+                </div>
+                <EpisodeRowActions seriesId={seriesId} episodeId={ep.id} label={label} videoUrl={ep.video_url} />
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
