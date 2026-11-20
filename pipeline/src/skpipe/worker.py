@@ -51,6 +51,7 @@ class AnalysisError(Exception):
 
 class Store(Protocol):
     def claim(self) -> dict | None: ...
+    def series_style(self, series_id: str) -> str | None: ...
     def characters(self, series_id: str) -> list[dict]: ...
     def download(self, bucket: str, path: str) -> bytes: ...
     def upload_image(self, path: str, data: bytes) -> None: ...
@@ -70,6 +71,10 @@ class SupabaseStore:
     def claim(self) -> dict | None:
         rows = self.client.rpc("claim_next_episode").execute().data or []
         return rows[0] if rows else None
+
+    def series_style(self, series_id: str) -> str | None:
+        rows = self.client.table("series").select("style").eq("id", series_id).limit(1).execute().data or []
+        return rows[0]["style"] if rows else None
 
     def characters(self, series_id: str) -> list[dict]:
         res = (
@@ -122,6 +127,12 @@ class SupabaseStore:
         ).eq("id", episode_id).execute()
 
 
+class Pool(Protocol):
+    """화풍 → (분석기, 기준값, 백엔드 이름). 실제 구현은 backends.AnalyzerPool."""
+
+    def for_style(self, style: str | None) -> tuple[FaceAnalyzer, Thresholds, str]: ...
+
+
 # ───────── 순수 변환 함수 (DB 행 만들기) ─────────
 
 
@@ -169,9 +180,10 @@ def build_issue_rows(result: dict, episode: dict, shot_ids: dict[int, str], fram
     return rows
 
 
-def build_summary(result: dict, character_count: int, elapsed_s: float) -> dict:
+def build_summary(result: dict, character_count: int, elapsed_s: float, backend: str | None = None) -> dict:
     return {
         **result["summary"],
+        "backend": backend,
         "characters": character_count,
         "skipped_refs": len(result["bible"]["skipped_refs"]),
         "timings": result["timings"],
@@ -225,6 +237,7 @@ def process_episode(
     episode: dict,
     workdir: Path,
     thresholds: Thresholds = Thresholds(),
+    backend: str | None = None,
 ) -> dict:
     """회차 하나를 분석하고 결과를 저장한다. 실패하면 AnalysisError (사용자에게 보여 줄 문장)."""
     started = time.perf_counter()
@@ -266,7 +279,7 @@ def process_episode(
 
     store.insert_issues(build_issue_rows(result, episode, shot_ids, frame_paths))
 
-    summary = build_summary(result, len(bible.characters), time.perf_counter() - started)
+    summary = build_summary(result, len(bible.characters), time.perf_counter() - started, backend)
     store.finish(episode["id"], summary)
     return summary
 
@@ -303,17 +316,19 @@ def config_from_env() -> WorkerConfig:
     return WorkerConfig(url, key, float(os.environ.get("WORKER_POLL_SECONDS", "5")))
 
 
-def run_one(store: Store, analyzer: FaceAnalyzer, thresholds: Thresholds = Thresholds()) -> bool:
+def run_one(store: Store, pool: Pool) -> bool:
     """회차 하나를 처리한다. 처리할 회차가 없으면 False."""
     episode = store.claim()
     if episode is None:
         return False
 
     label = f"{episode['number']}화 ({episode['id']})"
-    log.info("분석 시작: %s", label)
     with tempfile.TemporaryDirectory(prefix="skworker-") as tmp:
         try:
-            summary = process_episode(store, analyzer, episode, Path(tmp), thresholds)
+            # 시리즈 화풍에 맞는 백엔드 (애니체 → 애니 얼굴 검출 + DINOv2)
+            analyzer, thresholds, backend = pool.for_style(store.series_style(episode["series_id"]))
+            log.info("분석 시작: %s · 백엔드 %s", label, backend)
+            summary = process_episode(store, analyzer, episode, Path(tmp), thresholds, backend)
             log.info("분석 완료: %s · 컷 %s · 이슈 %s · %ss", label, summary["shots"], summary["issues"], summary["elapsed_s"])
         except AnalysisError as e:
             log.warning("분석 실패: %s · %s", label, e)
@@ -324,7 +339,7 @@ def run_one(store: Store, analyzer: FaceAnalyzer, thresholds: Thresholds = Thres
     return True
 
 
-def run_forever(store: Store, analyzer: FaceAnalyzer, poll_seconds: float, once: bool = False) -> None:
+def run_forever(store: Store, pool: Pool, poll_seconds: float, once: bool = False) -> None:
     stop = False
 
     def _stop(*_: Any) -> None:
@@ -338,7 +353,7 @@ def run_forever(store: Store, analyzer: FaceAnalyzer, poll_seconds: float, once:
     log.info("분석 워커 시작 (대기 회차 확인 간격 %ss)", poll_seconds)
     while not stop:
         try:
-            worked = run_one(store, analyzer)
+            worked = run_one(store, pool)
         except Exception:
             # DB 연결 끊김 등. 잠시 쉬었다가 다시 시도
             log.exception("작업을 가져오지 못했습니다")

@@ -1,0 +1,99 @@
+{
+  "id": "20261120-163057-실험1-반실사-애니-a-b",
+  "kind": "bench",
+  "name": "실험1 반실사 애니 a-b",
+  "note": "같은 설명으로 생성, 머리색만 다른 닮은 두 캐릭터",
+  "created_at": "2026-11-20T16:30:57",
+  "git": {
+    "commit": "5981333",
+    "branch": "feat/anime-backends",
+    "dirty": false
+  },
+  "dataset": {
+    "path": "samples/faces",
+    "characters": 2,
+    "images": 12,
+    "per_character": {
+      "a": 6,
+      "b": 6
+    },
+    "fingerprint": "3f6be87122cc"
+  },
+  "environment": {
+    "python": "3.12.10",
+    "os": "Windows 11",
+    "cpu": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "packages": {
+      "skpipe": "0.1.0",
+      "opencv-python": "4.14.0.94",
+      "numpy": "2.5.5",
+      "torch": "2.15.0+cpu",
+      "transformers": "5.23.0",
+      "scenedetect": "0.7.3"
+    }
+  },
+  "backend_thresholds": {
+    "opencv": {
+      "unknown_below": 0.25,
+      "issue_below": 0.45,
+      "ambiguous_margin": 0.05
+    },
+    "yunet-dino": {
+      "unknown_below": 0.35,
+      "issue_below": 0.6,
+      "ambiguous_margin": 0.03
+    },
+    "anime-dino": {
+      "unknown_below": 0.35,
+      "issue_below": 0.6,
+      "ambiguous_margin": 0.03
+    }
+  },
+  "results": [
+    {
+      "backend": "opencv",
+      "images": 12,
+      "detected": 12,
+      "detection_rate": 1.0,
+      "pos_pairs": 30,
+      "neg_pairs": 36,
+      "pos_mean": 0.5395248806104064,
+      "neg_mean": 0.555293949941794,
+      "auc": 0.5027777777777778,
+      "threshold": 0.7004877924919128,
+      "balanced_acc": 0.5527777777777778,
+      "id_acc": 0.4166666666666667,
+      "ms_per_image": 22.209491668036208
+    },
+    {
+      "backend": "yunet-dino",
+      "images": 12,
+      "detected": 12,
+      "detection_rate": 1.0,
+      "pos_pairs": 30,
+      "neg_pairs": 36,
+      "pos_mean": 0.775146339337031,
+      "neg_mean": 0.7566351426972283,
+      "auc": 0.5703703703703704,
+      "threshold": 0.7930867671966553,
+      "balanced_acc": 0.6166666666666667,
+      "id_acc": 0.8333333333333334,
+      "ms_per_image": 77.27522500014554
+    },
+    {
+      "backend": "anime-dino",
+      "images": 12,
+      "detected": 4,
+      "detection_rate": 0.3333333333333333,
+      "pos_pairs": 3,
+      "neg_pairs": 3,
+      "pos_mean": 0.7978928089141846,
+      "neg_mean": 0.7265141805013021,
+      "auc": 0.7777777777777778,
+      "threshold": 0.8037111759185791,
+      "balanced_acc": 0.8333333333333333,
+      "id_acc": 1.0,
+      "ms_per_image": 126.3736083395391
+    }
+  ]
+}
