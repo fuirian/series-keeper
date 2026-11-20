@@ -2,35 +2,39 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
-import { deleteReferenceImage, saveReferenceImage } from "@/app/actions/characters";
+import { deleteReferenceImage, saveReferenceImage } from "@/app/actions/references";
 import {
-  ANGLE_LABELS,
   IMAGE_TYPES,
   MAX_IMAGE_BYTES,
   REFERENCE_BUCKET,
-  type Angle,
-} from "@/lib/character-constants";
+  REFERENCE_KINDS,
+  type ReferenceKind,
+} from "@/lib/reference-constants";
 import { getBrowserClient } from "@/lib/supabase/client";
 
 type Props = {
+  kind: ReferenceKind;
   userId: string;
   seriesId: string;
-  characterId: string;
-  angle: Angle;
+  entityId: string; // 캐릭터 id 또는 장소 id
+  angle: string;
   imageUrl: string | null;
   hasImage: boolean;
-  required?: boolean;
 };
 
 /** 각도별 레퍼런스 이미지 칸. 누르면 파일을 골라 브라우저에서 저장소로 바로 올린다. */
-export function ReferenceSlot({ userId, seriesId, characterId, angle, imageUrl, hasImage, required }: Props) {
+export function ReferenceSlot({ kind, userId, seriesId, entityId, angle, imageUrl, hasImage }: Props) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [isPending, startTransition] = useTransition();
   const busy = uploading || isPending;
-  const label = ANGLE_LABELS[angle];
+
+  const config = REFERENCE_KINDS[kind];
+  const label = config.labels[angle] ?? angle;
+  const required = config.required === angle;
+  const target = { kind, seriesId, entityId, angle };
 
   async function handleFile(file: File) {
     setError(null);
@@ -41,7 +45,7 @@ export function ReferenceSlot({ userId, seriesId, characterId, angle, imageUrl, 
     setUploading(true);
     try {
       // 매번 새 파일 이름 → 브라우저 캐시에 예전 이미지가 남지 않는다. 예전 파일은 서버가 지운다.
-      const path = `${userId}/${seriesId}/${characterId}/${angle}-${crypto.randomUUID()}.${ext}`;
+      const path = `${userId}/${seriesId}/${entityId}/${angle}-${crypto.randomUUID()}.${ext}`;
       const { error: uploadError } = await getBrowserClient()
         .storage.from(REFERENCE_BUCKET)
         .upload(path, file, { contentType: file.type });
@@ -50,7 +54,7 @@ export function ReferenceSlot({ userId, seriesId, characterId, angle, imageUrl, 
         return setError("업로드에 실패했습니다. 저장소 설정(SQL)을 확인해 주세요.");
       }
 
-      const result = await saveReferenceImage({ seriesId, characterId, angle, path });
+      const result = await saveReferenceImage({ ...target, path });
       if (!result.ok) return setError(result.message);
       startTransition(() => router.refresh());
     } finally {
@@ -63,7 +67,7 @@ export function ReferenceSlot({ userId, seriesId, characterId, angle, imageUrl, 
     if (!window.confirm(`${label} 이미지를 삭제할까요?`)) return;
     setError(null);
     startTransition(async () => {
-      const result = await deleteReferenceImage({ seriesId, characterId, angle });
+      const result = await deleteReferenceImage(target);
       if (!result.ok) setError(result.message);
       else router.refresh();
     });
@@ -83,7 +87,7 @@ export function ReferenceSlot({ userId, seriesId, characterId, angle, imageUrl, 
           // eslint-disable-next-line @next/next/no-img-element
           <img src={imageUrl} alt={`${label} 레퍼런스`} className="h-full w-full object-cover" />
         ) : (
-          <span>
+          <span className="px-1">
             {busy ? "올리는 중…" : label}
             {!busy && required && <span className="block text-[10px]">(필수)</span>}
           </span>
@@ -92,10 +96,10 @@ export function ReferenceSlot({ userId, seriesId, characterId, angle, imageUrl, 
           <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-white">처리 중…</span>
         )}
       </button>
-      <div className="flex items-center justify-between text-[11px] text-black/50 dark:text-white/50">
-        <span>{label}</span>
+      <div className="flex items-center justify-between gap-1 text-[11px] text-black/50 dark:text-white/50">
+        <span className="truncate">{label}</span>
         {hasImage && (
-          <button type="button" onClick={handleRemove} disabled={busy} className="hover:text-red-600">
+          <button type="button" onClick={handleRemove} disabled={busy} className="shrink-0 hover:text-red-600">
             삭제
           </button>
         )}

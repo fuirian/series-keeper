@@ -1,4 +1,4 @@
-import { ANGLES } from "@/lib/character-constants";
+import { CHARACTER_ANGLES } from "@/lib/reference-constants";
 import { listCharacters } from "@/lib/characters";
 import { AddCharacterForm, CharacterInfo } from "./character-forms";
 import { ReferenceSlot } from "./reference-slot";
@@ -37,16 +37,16 @@ export async function CharactersTab({ seriesId, userId }: { seriesId: string; us
             >
               <CharacterInfo seriesId={seriesId} character={c} />
               <div className="flex flex-wrap gap-3">
-                {ANGLES.map((angle) => (
+                {CHARACTER_ANGLES.map((angle) => (
                   <ReferenceSlot
                     key={angle}
+                    kind="character"
                     userId={userId}
                     seriesId={seriesId}
-                    characterId={c.id}
+                    entityId={c.id}
                     angle={angle}
                     imageUrl={c.images[angle]?.url ?? null}
                     hasImage={Boolean(c.images[angle])}
-                    required={angle === "front"}
                   />
                 ))}
               </div>

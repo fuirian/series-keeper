@@ -1,16 +1,14 @@
 import "server-only";
 
-import { type Angle, REFERENCE_BUCKET } from "@/lib/character-constants";
+import { signPaths, toImageMap, type ReferenceImage } from "@/lib/references";
 import { createClient } from "@/lib/supabase/server";
-
-export type CharacterImage = { path: string; url: string | null };
 
 export type Character = {
   id: string;
   name: string;
   description: string | null;
   created_at: string;
-  images: Partial<Record<Angle, CharacterImage>>;
+  images: Record<string, ReferenceImage>; // 각도(front·side·back·full) → 이미지
 };
 
 export type CharacterListResult =
@@ -22,7 +20,7 @@ type Row = {
   name: string;
   description: string | null;
   created_at: string;
-  reference_image: { angle: Angle; storage_path: string }[] | null;
+  reference_image: { angle: string; storage_path: string }[] | null;
 };
 
 /** 시리즈의 캐릭터와 레퍼런스 이미지(1시간짜리 서명 URL 포함). */
@@ -43,19 +41,10 @@ export async function listCharacters(seriesId: string): Promise<CharacterListRes
   }
 
   const rows = (data ?? []) as Row[];
-  const paths = rows.flatMap((r) => (r.reference_image ?? []).map((img) => img.storage_path));
-
-  // 비공개 버킷이라 화면에 보여 줄 때는 짧게 유효한 서명 URL을 만든다
-  const urlByPath = new Map<string, string>();
-  if (paths.length > 0) {
-    const { data: signed, error: signError } = await supabase.storage
-      .from(REFERENCE_BUCKET)
-      .createSignedUrls(paths, 60 * 60);
-    if (signError) console.error("createSignedUrls", signError);
-    for (const s of signed ?? []) {
-      if (s.path && s.signedUrl) urlByPath.set(s.path, s.signedUrl);
-    }
-  }
+  const urlByPath = await signPaths(
+    supabase,
+    rows.flatMap((r) => (r.reference_image ?? []).map((img) => img.storage_path)),
+  );
 
   return {
     ok: true,
@@ -64,12 +53,7 @@ export async function listCharacters(seriesId: string): Promise<CharacterListRes
       name: r.name,
       description: r.description,
       created_at: r.created_at,
-      images: Object.fromEntries(
-        (r.reference_image ?? []).map((img) => [
-          img.angle,
-          { path: img.storage_path, url: urlByPath.get(img.storage_path) ?? null },
-        ]),
-      ),
+      images: toImageMap(r.reference_image, urlByPath),
     })),
   };
 }

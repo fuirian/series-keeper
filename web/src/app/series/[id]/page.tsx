@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { getSeries, STYLE_LABELS, type Series } from "@/lib/series";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { CharactersTab } from "./characters-tab";
+import { LocationsTab } from "./locations-tab";
 import { DeleteSeriesButton, SeriesSettingsForm } from "./settings-form";
 
 export const metadata: Metadata = {
@@ -70,12 +71,7 @@ function TabContent({ series, tab, userId }: { series: Series; tab: TabKey; user
     case "characters":
       return <CharactersTab seriesId={series.id} userId={userId} />;
     case "locations":
-      return (
-        <ComingSoon
-          title="등록된 장소가 없습니다"
-          description="자주 나오는 장소의 레퍼런스 이미지와 배치 메모를 등록합니다."
-        />
-      );
+      return <LocationsTab seriesId={series.id} userId={userId} />;
     case "settings":
       return (
         <div className="flex max-w-lg flex-col gap-10">

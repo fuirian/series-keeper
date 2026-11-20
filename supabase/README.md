@@ -17,6 +17,7 @@
 | `20261120000000_create_series.sql` | `series` 테이블 + 본인 것만 접근하는 RLS 정책 |
 | `20261120000100_grant_series.sql` | 로그인 사용자(`authenticated`)에게 `series` 권한 부여 |
 | `20261120000200_create_characters.sql` | `character`·`reference_image` 테이블, 비공개 이미지 버킷 `references`와 본인 폴더만 접근하는 정책 |
+| `20261120000300_create_locations.sql` | `location`·`location_image` 테이블 (이미지는 `references` 버킷 공유) |
 
 ## 원칙
 
