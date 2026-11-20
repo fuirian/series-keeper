@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { getSeries, STYLE_LABELS, type Series } from "@/lib/series";
 import { getCurrentUser } from "@/lib/supabase/server";
+import { CharactersTab } from "./characters-tab";
 import { DeleteSeriesButton, SeriesSettingsForm } from "./settings-form";
 
 export const metadata: Metadata = {
@@ -57,7 +58,7 @@ function ComingSoon({ title, description }: { title: string; description: string
   );
 }
 
-function TabContent({ series, tab }: { series: Series; tab: TabKey }) {
+function TabContent({ series, tab, userId }: { series: Series; tab: TabKey; userId: string }) {
   switch (tab) {
     case "episodes":
       return (
@@ -67,12 +68,7 @@ function TabContent({ series, tab }: { series: Series; tab: TabKey }) {
         />
       );
     case "characters":
-      return (
-        <ComingSoon
-          title="등록된 캐릭터가 없습니다"
-          description="캐릭터별 레퍼런스 이미지(정면·측면·후면)와 외형 설명을 등록합니다. 일관성 검사의 기준이 됩니다."
-        />
-      );
+      return <CharactersTab seriesId={series.id} userId={userId} />;
     case "locations":
       return (
         <ComingSoon
@@ -142,7 +138,7 @@ async function SeriesDetail({
       </div>
 
       <Tabs seriesId={series.id} active={tab} />
-      <TabContent series={series} tab={tab} />
+      <TabContent series={series} tab={tab} userId={user.id} />
     </>
   );
 }
