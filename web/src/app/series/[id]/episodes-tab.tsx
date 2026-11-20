@@ -6,6 +6,7 @@ import { EpisodeUpload } from "./episode-upload";
 const dateFormat = new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeZone: "Asia/Seoul" });
 
 const STATUS_STYLES: Record<EpisodeStatus, string> = {
+  uploaded: "border-black/15 text-black/60 dark:border-white/20 dark:text-white/60",
   pending: "border-black/15 text-black/60 dark:border-white/20 dark:text-white/60",
   processing: "border-blue-600/40 text-blue-700 dark:border-blue-400/40 dark:text-blue-300",
   done: "border-green-700/40 text-green-800 dark:border-green-400/40 dark:text-green-300",
@@ -36,8 +37,8 @@ export async function EpisodesTab({ seriesId, userId }: { seriesId: string; user
   return (
     <div className="flex flex-col gap-6">
       <p className="text-sm text-black/60 dark:text-white/60">
-        회차 영상을 올리면 분석 워커가 컷을 나누고, 캐릭터가 레퍼런스와 다르게 나온 컷을 찾습니다. 분석에는 캐릭터
-        탭의 정면 사진이 필요합니다.
+        회차 영상을 올리고 <strong>검사하기</strong>를 누르면, 분석 워커가 컷을 나누고 캐릭터가 레퍼런스와 다르게 나온
+        컷을 찾습니다. 검사 전에 캐릭터 탭에서 정면 사진을 등록해 주세요.
       </p>
 
       <EpisodeUpload userId={userId} seriesId={seriesId} nextNumber={nextNumber} />
@@ -74,6 +75,11 @@ export async function EpisodesTab({ seriesId, userId }: { seriesId: string; user
                       )}
                     </p>
                   )}
+                  {ep.status === "pending" && (
+                    <p className="mt-1 text-xs text-black/50 dark:text-white/50">
+                      분석 워커가 차례로 처리합니다. 오래 그대로라면 워커(skpipe worker)가 켜져 있는지 확인해 주세요.
+                    </p>
+                  )}
                   {ep.status === "failed" && ep.analysis_error && (
                     <p className="mt-1 text-sm text-red-700 dark:text-red-300">{ep.analysis_error}</p>
                   )}
@@ -83,7 +89,9 @@ export async function EpisodesTab({ seriesId, userId }: { seriesId: string; user
                   episodeId={ep.id}
                   label={label}
                   videoUrl={ep.video_url}
-                  canReanalyze={ep.status === "done" || ep.status === "failed"}
+                  requestLabel={
+                    ep.status === "uploaded" ? "검사하기" : ep.status === "done" || ep.status === "failed" ? "다시 검사" : null
+                  }
                   reportHref={ep.status === "done" ? `/series/${seriesId}/episodes/${ep.id}` : null}
                 />
               </li>

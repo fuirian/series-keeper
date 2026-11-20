@@ -45,7 +45,7 @@ export async function checkEpisodeNumber(input: { seriesId: string; number: numb
 }
 
 /**
- * 브라우저가 저장소에 올린 영상을 회차로 등록한다 (상태: 분석 대기).
+ * 브라우저가 저장소에 올린 영상을 회차로 등록한다 (상태: 검사 전. '검사하기'를 눌러야 검사 대기).
  * 영상 파일은 브라우저 → Supabase Storage로 바로 올라간다 (Next 서버를 거치지 않음).
  */
 export async function createEpisode(input: {
@@ -120,7 +120,7 @@ export async function deleteEpisode(input: { seriesId: string; episodeId: string
   return { ok: true };
 }
 
-/** 완료·실패한 회차를 다시 '분석 대기'로 돌린다 (본인 회차인지는 DB 함수가 확인). */
+/** '검사 전'·완료·실패 회차를 '검사 대기'로 돌린다 = 검사하기 / 다시 검사 (본인 회차인지는 DB 함수가 확인). */
 export async function requestAnalysis(input: { seriesId: string; episodeId: string }): Promise<EpisodeActionResult> {
   await requireUser();
   const { seriesId, episodeId } = input;
@@ -132,9 +132,9 @@ export async function requestAnalysis(input: { seriesId: string; episodeId: stri
     console.error("requestAnalysis", error);
     if (error.code === "PGRST202")
       return { ok: false, message: "분석 SQL이 아직 적용되지 않았습니다. 20261120000500_create_analysis.sql을 실행해 주세요." };
-    return { ok: false, message: "다시 분석을 요청하지 못했습니다." };
+    return { ok: false, message: "검사를 요청하지 못했습니다." };
   }
-  if (!data) return { ok: false, message: "이미 분석 대기 중이거나 분석 중인 회차입니다." };
+  if (!data) return { ok: false, message: "이미 검사 대기 중이거나 검사 중인 회차입니다." };
 
   revalidatePath(`/series/${seriesId}`);
   return { ok: true };

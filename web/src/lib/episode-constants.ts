@@ -11,12 +11,13 @@ export const VIDEO_TYPES: Record<string, string> = {
   "video/webm": "webm",
 };
 
-export const EPISODE_STATUSES = ["pending", "processing", "done", "failed"] as const;
+export const EPISODE_STATUSES = ["uploaded", "pending", "processing", "done", "failed"] as const;
 export type EpisodeStatus = (typeof EPISODE_STATUSES)[number];
 
 export const STATUS_LABELS: Record<EpisodeStatus, string> = {
-  pending: "분석 대기",
-  processing: "분석 중",
+  uploaded: "검사 전",
+  pending: "검사 대기",
+  processing: "검사 중",
   done: "완료",
   failed: "실패",
 };
