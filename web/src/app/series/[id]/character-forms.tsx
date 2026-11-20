@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useRef, useState } from "react";
 import {
   createCharacter,
   deleteCharacter,
@@ -8,6 +9,7 @@ import {
   type CharacterFormState,
 } from "@/app/actions/characters";
 import { FieldError, FormMessage, inputClass, submitClass } from "@/components/form";
+import { ReferencePicker, releasePicked, uploadPicked, type PickedImages } from "./reference-picker";
 
 type Values = { name?: string; description?: string };
 type Errors = { name?: string; description?: string };
@@ -52,27 +54,68 @@ function CharacterFields({ idPrefix, values, errors = {} }: { idPrefix: string; 
   );
 }
 
-/** 캐릭터 추가. 성공하면 폼이 비워지고 접힌다. */
-export function AddCharacterForm({ seriesId, startOpen }: { seriesId: string; startOpen: boolean }) {
+/** 캐릭터 추가 (이름·설명 + 사진). 성공하면 사진까지 올린 뒤 폼이 비워지고 접힌다. */
+export function AddCharacterForm({
+  seriesId,
+  userId,
+  startOpen,
+}: {
+  seriesId: string;
+  userId: string;
+  startOpen: boolean;
+}) {
+  const router = useRouter();
   const [open, setOpen] = useState(startOpen);
+  const [images, setImagesState] = useState<PickedImages>({});
+  const imagesRef = useRef<PickedImages>({}); // 액션 안에서 항상 최신 사진 목록을 읽기 위해
+  const setImages = (next: PickedImages) => {
+    imagesRef.current = next;
+    setImagesState(next);
+  };
+  const [notice, setNotice] = useState<string | null>(null);
   const [state, action, pending] = useActionState(
     async (prev: CharacterFormState, formData: FormData) => {
+      setNotice(null);
       const result = await createCharacter(prev, formData);
-      if (result?.saved) setOpen(false); // 추가되면 폼을 접는다
+      if (!result?.saved || !result.createdId) return result;
+
+      // 캐릭터가 만들어졌으면 고른 사진을 이어서 올린다
+      const picked = imagesRef.current;
+      const problem = await uploadPicked({
+        kind: "character",
+        userId,
+        seriesId,
+        entityId: result.createdId,
+        images: picked,
+      });
+      releasePicked(picked);
+      setImages({});
+      setNotice(problem);
+      setOpen(false); // 추가되면 폼을 접는다
+      router.refresh();
       return result;
     },
     undefined,
   );
 
+  function close() {
+    releasePicked(imagesRef.current);
+    setImages({});
+    setOpen(false);
+  }
+
   if (!open) {
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
-      >
-        + 캐릭터 추가
-      </button>
+      <div className="flex flex-col items-start gap-2">
+        {notice && <p className="text-sm text-red-600 dark:text-red-400">{notice}</p>}
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+        >
+          + 캐릭터 추가
+        </button>
+      </div>
     );
   }
 
@@ -85,11 +128,12 @@ export function AddCharacterForm({ seriesId, startOpen }: { seriesId: string; st
       <h3 className="font-semibold">새 캐릭터</h3>
       <input type="hidden" name="seriesId" value={seriesId} />
       <CharacterFields idPrefix="new" values={state?.values} errors={state?.errors} />
+      <ReferencePicker kind="character" value={images} onChange={setImages} disabled={pending} />
       <FormMessage message={state?.message} />
       <div className="flex gap-2">
         <button
           type="button"
-          onClick={() => setOpen(false)}
+          onClick={close}
           className="mt-2 rounded-md border border-black/15 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
         >
           취소

@@ -2,15 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
-import { deleteReferenceImage, saveReferenceImage } from "@/app/actions/references";
-import {
-  IMAGE_TYPES,
-  MAX_IMAGE_BYTES,
-  REFERENCE_BUCKET,
-  REFERENCE_KINDS,
-  type ReferenceKind,
-} from "@/lib/reference-constants";
-import { getBrowserClient } from "@/lib/supabase/client";
+import { deleteReferenceImage } from "@/app/actions/references";
+import { REFERENCE_KINDS, type ReferenceKind } from "@/lib/reference-constants";
+import { checkImageFile, uploadReferenceFile } from "@/lib/upload-reference";
 
 type Props = {
   kind: ReferenceKind;
@@ -38,23 +32,12 @@ export function ReferenceSlot({ kind, userId, seriesId, entityId, angle, imageUr
 
   async function handleFile(file: File) {
     setError(null);
-    const ext = IMAGE_TYPES[file.type];
-    if (!ext) return setError("PNG, JPG, WEBP만 올릴 수 있습니다.");
-    if (file.size > MAX_IMAGE_BYTES) return setError("5MB 이하 이미지만 올릴 수 있습니다.");
+    const problem = checkImageFile(file);
+    if (problem) return setError(problem);
 
     setUploading(true);
     try {
-      // 매번 새 파일 이름 → 브라우저 캐시에 예전 이미지가 남지 않는다. 예전 파일은 서버가 지운다.
-      const path = `${userId}/${seriesId}/${entityId}/${angle}-${crypto.randomUUID()}.${ext}`;
-      const { error: uploadError } = await getBrowserClient()
-        .storage.from(REFERENCE_BUCKET)
-        .upload(path, file, { contentType: file.type });
-      if (uploadError) {
-        console.error(uploadError);
-        return setError("업로드에 실패했습니다. 저장소 설정(SQL)을 확인해 주세요.");
-      }
-
-      const result = await saveReferenceImage({ ...target, path });
+      const result = await uploadReferenceFile({ kind, userId, seriesId, entityId, angle, file });
       if (!result.ok) return setError(result.message);
       startTransition(() => router.refresh());
     } finally {

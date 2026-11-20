@@ -60,7 +60,7 @@ export async function CharactersTab({ seriesId, userId }: { seriesId: string; us
       )}
 
       <div>
-        <AddCharacterForm seriesId={seriesId} startOpen={characters.length === 0} />
+        <AddCharacterForm seriesId={seriesId} userId={userId} startOpen={characters.length === 0} />
       </div>
     </div>
   );

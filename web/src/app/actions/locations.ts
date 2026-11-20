@@ -12,6 +12,7 @@ export type LocationFormState = {
   errors?: Partial<Record<LocationField, string>>;
   message?: string;
   saved?: boolean;
+  createdId?: string; // 추가 성공 시 새 장소 id (이어서 사진을 올릴 때 사용)
   values?: { name: string; description: string; layoutNote: string };
 } | undefined;
 
@@ -54,12 +55,16 @@ export async function createLocation(_prev: LocationFormState, formData: FormDat
 
   const supabase = await createClient();
   // 남의 시리즈에 넣으려 하면 RLS(insert 정책)가 막는다
-  const { error } = await supabase.from("location").insert({
-    series_id: seriesId,
-    name: values.name,
-    description: values.description || null,
-    layout_note: values.layoutNote || null,
-  });
+  const { data, error } = await supabase
+    .from("location")
+    .insert({
+      series_id: seriesId,
+      name: values.name,
+      description: values.description || null,
+      layout_note: values.layoutNote || null,
+    })
+    .select("id")
+    .single();
 
   if (error) {
     console.error("createLocation", error);
@@ -67,7 +72,7 @@ export async function createLocation(_prev: LocationFormState, formData: FormDat
   }
 
   revalidatePath(seriesPath(seriesId));
-  return { saved: true };
+  return { saved: true, createdId: data.id };
 }
 
 export async function updateLocation(_prev: LocationFormState, formData: FormData): Promise<LocationFormState> {

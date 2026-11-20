@@ -12,6 +12,7 @@ export type CharacterFormState = {
   errors?: Partial<Record<CharacterField, string>>;
   message?: string;
   saved?: boolean;
+  createdId?: string; // 추가 성공 시 새 캐릭터 id (이어서 사진을 올릴 때 사용)
   values?: { name: string; description: string };
 } | undefined;
 
@@ -53,9 +54,11 @@ export async function createCharacter(_prev: CharacterFormState, formData: FormD
 
   const supabase = await createClient();
   // 남의 시리즈에 넣으려 하면 RLS(insert 정책)가 막는다
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("character")
-    .insert({ series_id: seriesId, name: values.name, description: values.description || null });
+    .insert({ series_id: seriesId, name: values.name, description: values.description || null })
+    .select("id")
+    .single();
 
   if (error) {
     console.error("createCharacter", error);
@@ -63,7 +66,7 @@ export async function createCharacter(_prev: CharacterFormState, formData: FormD
   }
 
   revalidatePath(seriesPath(seriesId));
-  return { saved: true };
+  return { saved: true, createdId: data.id };
 }
 
 export async function updateCharacter(_prev: CharacterFormState, formData: FormData): Promise<CharacterFormState> {

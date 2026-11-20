@@ -60,7 +60,7 @@ export async function LocationsTab({ seriesId, userId }: { seriesId: string; use
       )}
 
       <div>
-        <AddLocationForm seriesId={seriesId} startOpen={locations.length === 0} />
+        <AddLocationForm seriesId={seriesId} userId={userId} startOpen={locations.length === 0} />
       </div>
     </div>
   );
