@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prepareSeriesImageCleanup } from "@/lib/references";
+import { prepareSeriesFileCleanup } from "@/lib/references";
 import { isUuid, SERIES_STYLES, type SeriesStyle } from "@/lib/series";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 
@@ -106,8 +106,8 @@ export async function deleteSeries(formData: FormData) {
   if (!isUuid(id)) redirect("/");
 
   const supabase = await createClient();
-  // 행이 지워지면(cascade) 이미지 경로를 잃으므로 먼저 읽어 둔다
-  const cleanupImages = await prepareSeriesImageCleanup(supabase, id);
+  // 행이 지워지면(cascade) 파일 경로를 잃으므로 먼저 읽어 둔다
+  const cleanupImages = await prepareSeriesFileCleanup(supabase, id);
   const { error } = await supabase.from("series").delete().eq("id", id);
   if (error) console.error("deleteSeries", error);
   else await cleanupImages();

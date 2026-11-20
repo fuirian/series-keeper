@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { EPISODE_BUCKET } from "@/lib/episode-constants";
 import { REFERENCE_BUCKET, REFERENCE_KINDS, type ReferenceKind } from "@/lib/reference-constants";
 
 export type ReferenceImage = { path: string; url: string | null };
@@ -44,22 +45,32 @@ export async function prepareImageCleanup(supabase: SupabaseClient, kind: Refere
   };
 }
 
-/** 시리즈를 지우기 전에 부른다: 시리즈 안 모든 캐릭터·장소 이미지 파일을 지우는 함수를 돌려준다. */
-export async function prepareSeriesImageCleanup(supabase: SupabaseClient, seriesId: string) {
+/**
+ * 시리즈를 지우기 전에 부른다: 시리즈 안 모든 파일(캐릭터·장소 이미지, 회차 영상)을 지우는 함수를 돌려준다.
+ * (DB 행은 cascade로 지워지지만 저장소 파일은 남기 때문)
+ */
+export async function prepareSeriesFileCleanup(supabase: SupabaseClient, seriesId: string) {
   type Nested = Record<string, { storage_path: string }[] | null>;
-  const [characters, locations] = await Promise.all([
+  const [characters, locations, episodes] = await Promise.all([
     supabase.from("character").select("reference_image(storage_path)").eq("series_id", seriesId),
     supabase.from("location").select("location_image(storage_path)").eq("series_id", seriesId),
+    supabase.from("episode").select("video_path").eq("series_id", seriesId),
   ]);
   // 테이블이 아직 없으면(마이그레이션 전) 오류가 나지만, 지울 파일도 없으므로 무시한다
-  const paths = [
+  const imagePaths = [
     ...((characters.data ?? []) as Nested[]).flatMap((c) => c.reference_image ?? []),
     ...((locations.data ?? []) as Nested[]).flatMap((l) => l.location_image ?? []),
   ].map((i) => i.storage_path);
+  const videoPaths = ((episodes.data ?? []) as { video_path: string }[]).map((e) => e.video_path);
 
   return async () => {
-    if (paths.length === 0) return;
-    const { error } = await supabase.storage.from(REFERENCE_BUCKET).remove(paths);
-    if (error) console.error("remove series images", error);
+    if (imagePaths.length > 0) {
+      const { error } = await supabase.storage.from(REFERENCE_BUCKET).remove(imagePaths);
+      if (error) console.error("remove series images", error);
+    }
+    if (videoPaths.length > 0) {
+      const { error } = await supabase.storage.from(EPISODE_BUCKET).remove(videoPaths);
+      if (error) console.error("remove series videos", error);
+    }
   };
 }

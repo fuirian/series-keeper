@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { getSeries, STYLE_LABELS, type Series } from "@/lib/series";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { CharactersTab } from "./characters-tab";
+import { EpisodesTab } from "./episodes-tab";
 import { LocationsTab } from "./locations-tab";
 import { DeleteSeriesButton, SeriesSettingsForm } from "./settings-form";
 
@@ -47,27 +48,10 @@ function Tabs({ seriesId, active }: { seriesId: string; active: TabKey }) {
   );
 }
 
-function ComingSoon({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-black/15 px-4 py-16 text-center dark:border-white/20">
-      <p className="font-medium">{title}</p>
-      <p className="mt-1 max-w-sm text-sm text-black/60 dark:text-white/60">{description}</p>
-      <span className="mt-4 rounded-full bg-black/5 px-3 py-1 text-xs text-black/50 dark:bg-white/10 dark:text-white/50">
-        준비 중
-      </span>
-    </div>
-  );
-}
-
 function TabContent({ series, tab, userId }: { series: Series; tab: TabKey; userId: string }) {
   switch (tab) {
     case "episodes":
-      return (
-        <ComingSoon
-          title="아직 회차가 없습니다"
-          description="회차 영상을 올리면 컷을 나누고, 캐릭터가 바이블과 다르게 나온 컷을 찾아 리포트로 보여 줍니다."
-        />
-      );
+      return <EpisodesTab seriesId={series.id} userId={userId} />;
     case "characters":
       return <CharactersTab seriesId={series.id} userId={userId} />;
     case "locations":
