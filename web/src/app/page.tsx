@@ -1,56 +1,120 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { logout } from "@/app/actions/auth";
+import { SiteHeader } from "@/components/site-header";
+import { listMySeries, STYLE_LABELS, type Series } from "@/lib/series";
 import { getCurrentUser } from "@/lib/supabase/server";
 
-const ghostButton =
-  "rounded-md px-4 py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10";
+const dateFormat = new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeZone: "Asia/Seoul" });
 
-/** 세션(쿠키)을 읽으므로 Suspense 안에서 요청 때 렌더링된다. */
-async function UserMenu() {
-  const user = await getCurrentUser();
+function SeriesCard({ series }: { series: Series }) {
+  return (
+    <li className="flex flex-col rounded-lg border border-black/10 p-4 dark:border-white/15">
+      <div className="mb-3 flex aspect-video items-center justify-center rounded-md bg-black/5 text-xs text-black/40 dark:bg-white/5 dark:text-white/40">
+        대표 이미지 없음
+      </div>
+      <div className="flex items-center gap-2">
+        <h3 className="truncate font-semibold">{series.title}</h3>
+        <span className="shrink-0 rounded-full border border-black/15 px-2 py-0.5 text-xs dark:border-white/20">
+          {STYLE_LABELS[series.style] ?? series.style}
+        </span>
+      </div>
+      {series.style_note && (
+        <p className="mt-1 line-clamp-2 text-sm text-black/60 dark:text-white/60">{series.style_note}</p>
+      )}
+      <p className="mt-auto pt-3 text-xs text-black/50 dark:text-white/50">
+        {dateFormat.format(new Date(series.created_at))} 생성
+      </p>
+    </li>
+  );
+}
 
-  if (user) {
-    const email = user.email ?? "로그인됨";
+function NewSeriesCard() {
+  return (
+    <li>
+      <Link
+        href="/series/new"
+        className="flex h-full min-h-48 items-center justify-center rounded-lg border-2 border-dashed border-black/15 text-sm font-medium text-black/60 hover:border-foreground hover:text-foreground dark:border-white/20 dark:text-white/60"
+      >
+        + 새 시리즈 만들기
+      </Link>
+    </li>
+  );
+}
+
+async function MySeries() {
+  const result = await listMySeries();
+
+  if (!result.ok) {
     return (
-      <>
-        <span className="mr-2 truncate text-sm text-black/60 dark:text-white/60">{email}</span>
-        <form action={logout}>
-          <button type="submit" className={ghostButton}>
-            로그아웃
-          </button>
-        </form>
-      </>
+      <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
+        {result.reason === "missing_table"
+          ? "DB에 series 테이블이 없습니다. supabase/migrations의 SQL을 Supabase SQL Editor에서 실행해 주세요."
+          : result.reason === "no_permission"
+            ? "series 테이블 권한이 없습니다. supabase/migrations/20261120000100_grant_series.sql을 실행해 주세요."
+            : "시리즈 목록을 불러오지 못했습니다. 잠시 후 새로고침해 주세요."}
+      </p>
     );
   }
 
   return (
     <>
-      <Link href="/login" className={ghostButton}>
-        로그인
-      </Link>
-      <Link
-        href="/signup"
-        className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
-      >
-        회원가입
-      </Link>
+      {result.series.length === 0 && (
+        <p className="mb-4 text-sm text-black/60 dark:text-white/60">
+          아직 시리즈가 없습니다. 첫 시리즈를 만들어 캐릭터와 회차를 관리해 보세요.
+        </p>
+      )}
+      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {result.series.map((s) => (
+          <SeriesCard key={s.id} series={s} />
+        ))}
+        <NewSeriesCard />
+      </ul>
     </>
+  );
+}
+
+function Landing() {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+      <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">SeriesKeeper</h1>
+      <p className="max-w-md text-black/60 dark:text-white/60">
+        AI로 만든 연재물의 캐릭터·장소를 시리즈 단위로 관리하고, 회차마다 달라진 컷을 찾아 줍니다.
+      </p>
+    </div>
+  );
+}
+
+/** 로그인 여부에 따라 목록 또는 소개를 보여 준다. */
+async function HomeContent() {
+  const user = await getCurrentUser();
+  if (!user) return <Landing />;
+
+  return (
+    <section className="mx-auto w-full max-w-5xl">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-xl font-semibold">내 시리즈</h2>
+        <Link
+          href="/series/new"
+          className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+        >
+          + 새 시리즈
+        </Link>
+      </div>
+      <Suspense fallback={<p className="text-sm text-black/50 dark:text-white/50">불러오는 중…</p>}>
+        <MySeries />
+      </Suspense>
+    </section>
   );
 }
 
 export default function Home() {
   return (
     <>
-      <header className="flex h-[4.25rem] items-center justify-end gap-2 px-4 sm:px-6">
+      <SiteHeader />
+      <main className="flex flex-1 flex-col px-4 py-8 sm:px-6">
         <Suspense fallback={null}>
-          <UserMenu />
+          <HomeContent />
         </Suspense>
-      </header>
-      <main className="flex flex-1 items-center justify-center px-4">
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
-          SeriesKeeper
-        </h1>
       </main>
     </>
   );
