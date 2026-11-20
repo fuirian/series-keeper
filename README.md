@@ -45,7 +45,7 @@ MVP는 **"시리즈 바이블 + 컷 단위 일관성 검사"** 두 가지만 끝
 | MVP | 시리즈·회차 관리 | 로그인, 시리즈 생성·수정·삭제, 회차별 영상 업로드와 분석 상태 표시 | ✅ |
 | MVP | 시리즈 바이블 | 캐릭터(각도별)·장소 레퍼런스 이미지와 설명 저장 | ✅ |
 | MVP | 컷 분할 | 장면 전환 감지로 영상을 컷으로 나누고 대표 프레임 추출 | ✅ |
-| MVP | 캐릭터 일관성 검사 | 얼굴 임베딩으로 컷별 인물을 바이블과 매칭, 유사도가 낮은 컷 표시 | ✅ |
+| MVP | 캐릭터 일관성 검사 | 얼굴 임베딩으로 컷별 인물을 바이블과 매칭, 유사도가 낮은 컷 표시. 시리즈 화풍(실사·애니·3D)에 맞는 분석 백엔드 자동 선택 | ✅ |
 | MVP | 검수 리포트 | 회차별 이슈 목록(타임코드, 사유, 점수), 레퍼런스와 비교 패널, 해결·오탐 표시 | ✅ |
 | MVP | 배포 | 웹·워커 서버 배포 | ⏳ |
 | MVP | 외형 묘사 자동 생성 | 비전 LLM이 레퍼런스 이미지에서 표준 묘사 문장을 생성 | ⏳ |
@@ -67,7 +67,7 @@ MVP는 **"시리즈 바이블 + 컷 단위 일관성 검사"** 두 가지만 끝
          │  pending 회차를 하나씩 가져감 (FOR UPDATE SKIP LOCKED)
          │  분석 후 shot·issue 저장, status = done / failed
  [분석 워커 (Python, skpipe worker)]
-   컷 분할 → 대표 프레임 → 얼굴 검출·임베딩 → 바이블과 유사도 비교
+   컷 분할 → 대표 프레임 → 화풍별 얼굴 검출·임베딩 → 바이블과 유사도 비교
 ```
 
 - 큐는 `episode.status`로 충분합니다. 워커를 여러 개 띄워도 같은 회차를 중복으로 가져가지 않습니다.
@@ -81,9 +81,12 @@ MVP는 **"시리즈 바이블 + 컷 단위 일관성 검사"** 두 가지만 끝
 | DB·인증·스토리지 | Supabase (PostgreSQL + RLS, Auth, Storage) | 한 곳에서 관리, 행 단위 권한 |
 | 분석 워커 | Python (`skpipe`) | ML 라이브러리와 같은 언어 |
 | 컷 분할 | PySceneDetect, ffmpeg | 검증된 오픈소스 |
-| 얼굴 비교 | OpenCV YuNet + SFace | CPU로 충분, 상업적 사용 가능한 라이선스. InsightFace로 교체 가능하게 설계 |
-| CI | GitHub Actions | 파이프라인 테스트, 웹 타입·린트 검사 |
-| 의상·배경 비교 (예정) | CLIP 또는 DINOv2 | 이미지 유사도 임베딩 |
+| 얼굴 비교 (실사) | OpenCV YuNet + SFace | CPU로 충분, 상업적 사용 가능한 라이선스 |
+| 얼굴 비교 (애니·3D) | PyTorch + Hugging Face Transformers, DINOv2-small, lbpcascade_animeface | 실사 얼굴 모델이 약한 그림체 캐릭터를 범용 시각 특징으로 구분 |
+| 테스트·CI | pytest, GitHub Actions | 파이프라인 테스트, 웹 타입·린트 검사 |
+| 의상·배경 비교 (예정) | CLIP 또는 DINOv2 (PyTorch) | 이미지 유사도 임베딩 |
+
+얼굴 분석은 **검출기 + 임베더** 조합으로 나뉘어 있어 백엔드를 바꿔 끼울 수 있습니다. 백엔드별 기준값과 비교 실험은 [pipeline/README.md](pipeline/README.md)와 [docs/experiments.md](docs/experiments.md)에 있습니다.
 
 ### 데이터 모델
 
@@ -102,7 +105,7 @@ MVP는 **"시리즈 바이블 + 컷 단위 일관성 검사"** 두 가지만 끝
 
 - [x] **1주차** — 크리에이터 불편 조사, 샘플 기준, 화면 와이어프레임 ([docs](docs))
 - [x] **2주차** — 컷 분할 + 얼굴 일관성 검사 PoC, 평가 스크립트
-- [x] **3주차** — DB 스키마, 인증, 분석 워커 (Postgres 큐)
+- [x] **3주차** — DB 스키마, 인증, 분석 워커 (Postgres 큐), 화풍별 백엔드(DINOv2) 비교 실험
 - [ ] **4주차** — 웹 화면 ✅ (바이블, 업로드, 리포트) / 배포와 **MVP 공개** ⏳
 - [ ] **5주차** — 크리에이터 5~10명에게 사용 요청, 피드백 수집
 - [ ] **6주차** — 피드백 반영, 의상·배경 검사 (확장 1)
@@ -133,7 +136,7 @@ MVP는 **"시리즈 바이블 + 컷 단위 일관성 검사"** 두 가지만 끝
 
 | 리스크 | 대응 |
 | --- | --- |
-| 애니·만화체 얼굴에서 실사용 얼굴 인식 모델 정확도가 낮음 | 실사·애니 샘플로 측정. 낮으면 애니 얼굴 검출 모델 또는 CLIP/DINOv2 임베딩으로 교체 |
+| 애니·만화체 얼굴에서 실사용 얼굴 인식 모델 정확도가 낮음 | 애니 얼굴 검출기 + DINOv2 백엔드를 추가해 화풍별로 자동 선택. 기준값은 아직 임시라 `skpipe bench` 실험으로 확정 |
 | 긴 영상 분석에 GPU 비용·시간이 큼 | 컷당 대표 프레임 몇 장만 분석, CPU로 도는 모델 우선 |
 | 생성 모델이 일관성을 스스로 해결함 | 모델 독립적인 검수·설정 관리에 집중. 장소 배치·시선은 모델이 아직 약한 영역 |
 | 사용자 모집이 어려움 | AI 영상 커뮤니티에 무료 사용 제안, 직접 만든 영상으로도 데모 |
@@ -155,6 +158,9 @@ MVP는 **"시리즈 바이블 + 컷 단위 일관성 검사"** 두 가지만 끝
    cd pipeline
    python -m venv .venv
    .venv\Scripts\python -m pip install -e ".[dev,worker]"
+   # 애니·3D 시리즈도 분석하려면 PyTorch(CPU용)와 anime 추가 설치
+   .venv\Scripts\python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+   .venv\Scripts\python -m pip install -e ".[anime]"
    .venv\Scripts\skpipe models
    .venv\Scripts\skpipe worker
    ```
