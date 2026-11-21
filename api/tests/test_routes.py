@@ -1,11 +1,12 @@
 """API 응답 모양 (DB는 가짜)."""
 
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from uuid import uuid4
 
 from conftest import auth_header, make_token
 
-from skapi.db import user_connection
+from skapi.db import get_pool, user_connection
 
 
 class FakeConn:
@@ -45,17 +46,36 @@ def test_list_series(app, client):
     assert item["style"] == "anime"
 
 
-def test_me_returns_user_and_usage(app, client):
-    usage = {"series": 2, "characters": 3, "episodes": 4, "checked_episodes": 1, "open_issues": 5}
-    _use(app, FakeConn(row=usage))
+class FakePool:
+    def __init__(self, row):
+        self.conn = FakeConn(row=row)
 
-    res = client.get("/v1/me", headers=auth_header(make_token("user-123", email="me@example.com")))
+    @asynccontextmanager
+    async def _acquire(self):
+        yield self.conn
+
+    def acquire(self):
+        return self._acquire()
+
+
+def test_me_returns_user_account_and_usage(app, client):
+    uid = str(uuid4())
+    usage = {"series": 2, "characters": 3, "episodes": 4, "checked_episodes": 1, "open_issues": 5}
+    joined = datetime(2026, 11, 20, 1, 0, tzinfo=UTC)
+    _use(app, FakeConn(row=usage))
+    pool = FakePool(row={"created_at": joined, "email_confirmed_at": joined})
+    app.dependency_overrides[get_pool] = lambda: pool
+
+    res = client.get("/v1/me", headers=auth_header(make_token(uid, email="me@example.com")))
 
     assert res.status_code == 200
     body = res.json()
-    assert body["id"] == "user-123"
+    assert body["id"] == uid
     assert body["email"] == "me@example.com"
     assert body["usage"] == usage
+    assert body["created_at"].startswith("2026-11-20")
+    # 서버 권한 조회는 auth.users에서 본인 행 하나만
+    assert "where id = $1" in pool.conn.queries[0]
 
 
 def test_cors_allows_web_origin(client):
