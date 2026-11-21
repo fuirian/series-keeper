@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { SiteHeader } from "@/components/site-header";
+import { AppShell } from "@/components/app-shell";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { NewSeriesForm } from "./new-series-form";
 
@@ -19,8 +19,7 @@ async function RequireLogin({ children }: { children: React.ReactNode }) {
 export default function NewSeriesPage() {
   return (
     <>
-      <SiteHeader />
-      <main className="flex flex-1 justify-center px-4 py-10">
+      <AppShell mainClassName="flex flex-1 justify-center px-4 py-10">
         <div className="w-full max-w-lg">
           <h1 className="mb-1 text-2xl font-semibold tracking-tight">새 시리즈</h1>
           <p className="mb-6 text-sm text-black/60 dark:text-white/60">
@@ -32,7 +31,7 @@ export default function NewSeriesPage() {
             </RequireLogin>
           </Suspense>
         </div>
-      </main>
+      </AppShell>
     </>
   );
 }

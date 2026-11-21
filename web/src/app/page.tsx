@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { SiteHeader } from "@/components/site-header";
+import { AppShell } from "@/components/app-shell";
 import { listMySeries, STYLE_LABELS, type Series } from "@/lib/series";
 import { getCurrentUser } from "@/lib/supabase/server";
 
@@ -125,12 +125,11 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
 export default function Home({ searchParams }: PageProps<"/">) {
   return (
     <>
-      <SiteHeader />
-      <main className="flex flex-1 flex-col px-4 py-8 sm:px-6">
+      <AppShell mainClassName="flex flex-1 flex-col px-4 py-8 sm:px-6">
         <Suspense fallback={null}>
           <HomeContent searchParams={searchParams} />
         </Suspense>
-      </main>
+      </AppShell>
     </>
   );
 }

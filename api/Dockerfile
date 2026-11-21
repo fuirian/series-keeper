@@ -12,5 +12,6 @@ RUN pip install --no-cache-dir .
 RUN useradd --create-home app
 USER app
 
+# Cloud Run은 PORT 환경 변수(기본 8080)로 포트를 알려 준다. 없으면 8000
 EXPOSE 8000
-CMD ["uvicorn", "skapi.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "exec uvicorn skapi.main:create_app --factory --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers"]

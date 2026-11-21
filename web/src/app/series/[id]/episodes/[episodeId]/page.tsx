@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
-import { SiteHeader } from "@/components/site-header";
+import { AppShell } from "@/components/app-shell";
 import { STATUS_LABELS } from "@/lib/episode-constants";
 import { getEpisodeReport, type CharacterRefs, type ReportIssue } from "@/lib/report";
 import { formatTimecode, ISSUE_TYPE_LABELS, REVIEW_LABELS } from "@/lib/report-constants";
@@ -391,14 +391,13 @@ async function Report({
 export default function ReportPage({ params, searchParams }: PageProps<"/series/[id]/episodes/[episodeId]">) {
   return (
     <>
-      <SiteHeader />
-      <main className="flex flex-1 flex-col px-4 py-8 sm:px-6">
+      <AppShell mainClassName="flex flex-1 flex-col px-4 py-8 sm:px-6">
         <div className="mx-auto w-full max-w-5xl">
           <Suspense fallback={<p className="text-sm text-black/50 dark:text-white/50">리포트를 불러오는 중…</p>}>
             <Report params={params} searchParams={searchParams} />
           </Suspense>
         </div>
-      </main>
+      </AppShell>
     </>
   );
 }

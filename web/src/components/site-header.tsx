@@ -15,11 +15,7 @@ async function UserMenu() {
       <>
         <span className="mr-2 hidden truncate text-sm text-black/60 sm:inline dark:text-white/60">
           {user.email ?? "로그인됨"}
-        </span>
-        <Link href="/mypage" className={ghostButton}>
-          마이페이지
-        </Link>
-        <form action={logout}>
+        </span>        <form action={logout}>
           <button type="submit" className={ghostButton}>
             로그아웃
           </button>
