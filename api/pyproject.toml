@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "skapi"
+version = "0.1.0"
+description = "SeriesKeeper 백엔드 API (FastAPI)"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  # Postgres에 직접 붙는 비동기 드라이버 (Supabase REST를 거치지 않음)
+  "asyncpg>=0.30",
+  # Supabase 로그인 토큰(JWT, ES256) 검증
+  "pyjwt[crypto]>=2.9",
+  # .env·환경 변수 → 설정 객체
+  "pydantic-settings>=2.6",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "httpx>=0.27", "ruff>=0.8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
