@@ -40,6 +40,14 @@ export function AuthLayout({ title, children }: { title: string; children: React
           {children}
         </div>
       </main>
+      <footer className="flex justify-center gap-4 px-4 pb-6 text-xs text-black/50 dark:text-white/50">
+        <Link href="/terms" className="hover:underline">
+          이용약관
+        </Link>
+        <Link href="/privacy" className="font-medium hover:underline">
+          개인정보 처리방침
+        </Link>
+      </footer>
     </>
   );
 }

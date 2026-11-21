@@ -5,6 +5,8 @@ import { useActionState } from "react";
 import { signup } from "@/app/actions/auth";
 import { FieldError, FormMessage, inputClass, submitClass } from "@/components/form";
 
+const termsLinkClass = "font-medium underline underline-offset-4";
+
 export function SignupForm() {
   const [state, action, pending] = useActionState(signup, undefined);
   const errors = state?.errors ?? {};
@@ -88,7 +90,15 @@ export function SignupForm() {
             className="mt-0.5"
           />
           <span>
-            이용약관에 동의합니다. 업로드하는 영상은 본인이 권리를 가진 영상이어야 합니다.
+            {/* 새 탭으로 열어 입력하던 가입 정보가 지워지지 않게 한다 */}
+            <Link href="/terms" target="_blank" rel="noopener noreferrer" className={termsLinkClass}>
+              이용약관
+            </Link>
+            과{" "}
+            <Link href="/privacy" target="_blank" rel="noopener noreferrer" className={termsLinkClass}>
+              개인정보 처리방침
+            </Link>
+            에 동의합니다. 업로드하는 영상은 본인이 권리를 가진 영상이어야 하며, 만 14세 이상만 가입할 수 있습니다.
           </span>
         </label>
         <FieldError id="terms-error" message={errors.terms} />
