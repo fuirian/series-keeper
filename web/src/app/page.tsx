@@ -92,12 +92,20 @@ function Landing() {
 }
 
 /** 로그인 여부에 따라 목록 또는 소개를 보여 준다. */
-async function HomeContent() {
-  const user = await getCurrentUser();
+async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
+  const [user, query] = await Promise.all([getCurrentUser(), searchParams]);
   if (!user) return <Landing />;
 
   return (
     <section className="mx-auto w-full max-w-5xl">
+      {query.verified === "1" && (
+        <p
+          role="status"
+          className="mb-6 rounded-md bg-green-50 px-4 py-3 text-sm text-green-800 dark:bg-green-950/40 dark:text-green-300"
+        >
+          이메일 인증이 완료되었습니다. 가입을 환영합니다!
+        </p>
+      )}
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-xl font-semibold">내 시리즈</h2>
         <Link
@@ -114,13 +122,13 @@ async function HomeContent() {
   );
 }
 
-export default function Home() {
+export default function Home({ searchParams }: PageProps<"/">) {
   return (
     <>
       <SiteHeader />
       <main className="flex flex-1 flex-col px-4 py-8 sm:px-6">
         <Suspense fallback={null}>
-          <HomeContent />
+          <HomeContent searchParams={searchParams} />
         </Suspense>
       </main>
     </>

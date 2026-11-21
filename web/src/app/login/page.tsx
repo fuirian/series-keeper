@@ -8,13 +8,16 @@ export const metadata: Metadata = {
 };
 
 const NOTICES: Record<string, string> = {
-  confirm: "인증 링크가 만료되었거나 올바르지 않습니다. 다시 로그인하거나 가입해 주세요.",
+  verified: "이메일 인증이 완료되었습니다. 가입한 이메일과 비밀번호로 로그인해 주세요.",
+  expired: "인증 링크가 만료되었거나 이미 사용되었습니다. 이미 인증했다면 로그인하고, 아니면 다시 가입해 주세요.",
+  confirm: "인증 링크가 올바르지 않습니다. 이미 인증했다면 로그인하고, 아니면 다시 가입해 주세요.",
 };
 
-/** 주소의 ?error=... 를 읽으므로 Suspense 안에서 요청 때 렌더링된다. */
+/** 주소의 ?notice=... 를 읽으므로 Suspense 안에서 요청 때 렌더링된다. */
 async function LoginFormWithNotice({ searchParams }: { searchParams: PageProps<"/login">["searchParams"] }) {
-  const { error } = await searchParams;
-  const notice = typeof error === "string" ? NOTICES[error] : undefined;
+  const query = await searchParams;
+  const key = query.notice ?? query.error; // error=는 예전 링크 호환
+  const notice = typeof key === "string" ? NOTICES[key] : undefined;
   return <LoginForm notice={notice} />;
 }
 
