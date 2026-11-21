@@ -122,6 +122,51 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   redirect("/");
 }
 
+/* ───────── 비밀번호 변경 (마이페이지) ───────── */
+
+export type PasswordField = "current" | "password" | "passwordConfirm";
+
+export type PasswordState = {
+  errors?: Partial<Record<PasswordField, string>>;
+  message?: string;
+  success?: boolean;
+} | undefined;
+
+export async function changePassword(_prev: PasswordState, formData: FormData): Promise<PasswordState> {
+  const current = String(formData.get("current") ?? "");
+  const password = String(formData.get("password") ?? "");
+  const passwordConfirm = String(formData.get("passwordConfirm") ?? "");
+
+  const errors: Partial<Record<PasswordField, string>> = {};
+  if (!current) errors.current = "지금 비밀번호를 입력해 주세요.";
+  if (password.length < 8) errors.password = "비밀번호는 8자 이상이어야 합니다.";
+  else if (!/[A-Za-z]/.test(password) || !/\d/.test(password))
+    errors.password = "비밀번호에 영문과 숫자를 모두 넣어 주세요.";
+  else if (password === current) errors.password = "지금 비밀번호와 다른 비밀번호를 써 주세요.";
+  if (passwordConfirm !== password) errors.passwordConfirm = "비밀번호가 일치하지 않습니다.";
+  if (Object.keys(errors).length > 0) return { errors };
+  if (!isSupabaseConfigured) return { message: NOT_CONFIGURED };
+
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const email = data?.claims?.email as string | undefined;
+  if (!email) return { message: "로그인이 만료되었습니다. 다시 로그인해 주세요." };
+
+  // 자리를 비운 사이 남이 바꾸지 못하게, 지금 비밀번호를 한 번 더 확인한다
+  const { error: checkError } = await supabase.auth.signInWithPassword({ email, password: current });
+  if (checkError) return { errors: { current: "지금 비밀번호가 올바르지 않습니다." } };
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    if (error.code === "weak_password") return { errors: { password: "더 강한 비밀번호를 써 주세요." } };
+    if (error.code === "same_password") return { errors: { password: "지금 비밀번호와 다른 비밀번호를 써 주세요." } };
+    console.error("changePassword", error.code);
+    return { message: "비밀번호를 바꾸지 못했습니다. 잠시 후 다시 시도해 주세요." };
+  }
+
+  return { success: true, message: "비밀번호를 바꿨습니다. 다음 로그인부터 새 비밀번호를 쓰세요." };
+}
+
 /* ───────── 로그아웃 ───────── */
 
 export async function logout() {
