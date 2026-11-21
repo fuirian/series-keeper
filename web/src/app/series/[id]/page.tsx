@@ -14,13 +14,15 @@ export const metadata: Metadata = {
   title: "시리즈 · SeriesKeeper",
 };
 
+// 작업 순서대로: 캐릭터·장소를 먼저 등록하고, 회차(검사)는 마지막에 한다.
 const TABS = [
-  { key: "episodes", label: "회차" },
   { key: "characters", label: "캐릭터" },
   { key: "locations", label: "장소" },
+  { key: "episodes", label: "회차" },
   { key: "settings", label: "설정" },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
+const DEFAULT_TAB: TabKey = TABS[0].key;
 
 const dateFormat = new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeZone: "Asia/Seoul" });
 
@@ -32,7 +34,7 @@ function Tabs({ seriesId, active }: { seriesId: string; active: TabKey }) {
         return (
           <Link
             key={tab.key}
-            href={tab.key === "episodes" ? `/series/${seriesId}` : `/series/${seriesId}?tab=${tab.key}`}
+            href={tab.key === DEFAULT_TAB ? `/series/${seriesId}` : `/series/${seriesId}?tab=${tab.key}`}
             aria-current={isActive ? "page" : undefined}
             className={`-mb-px shrink-0 border-b-2 py-2 text-sm ${
               isActive
@@ -95,7 +97,7 @@ async function SeriesDetail({
   const series = await getSeries(id);
   if (!series) notFound(); // 없거나 다른 사람 시리즈
 
-  const tab: TabKey = TABS.some((t) => t.key === query.tab) ? (query.tab as TabKey) : "episodes";
+  const tab: TabKey = TABS.some((t) => t.key === query.tab) ? (query.tab as TabKey) : DEFAULT_TAB;
 
   return (
     <>

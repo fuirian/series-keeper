@@ -1,3 +1,4 @@
+import { AutoRefresh } from "@/components/auto-refresh";
 import { formatBytes, formatDuration, STATUS_LABELS, type EpisodeStatus } from "@/lib/episode-constants";
 import { listEpisodes } from "@/lib/episodes";
 import { EpisodeRowActions } from "./episode-row-actions";
@@ -33,9 +34,12 @@ export async function EpisodesTab({ seriesId, userId }: { seriesId: string; user
 
   const { episodes } = result;
   const nextNumber = episodes.length > 0 ? Math.max(...episodes.map((e) => e.number)) + 1 : 1;
+  // 검사 대기·검사 중인 회차가 있으면 상태가 바뀔 때까지 자동으로 다시 불러온다
+  const inProgress = episodes.some((e) => e.status === "pending" || e.status === "processing");
 
   return (
     <div className="flex flex-col gap-6">
+      <AutoRefresh active={inProgress} />
       <p className="text-sm text-black/60 dark:text-white/60">
         회차 영상을 올리고 <strong>검사하기</strong>를 누르면, 분석 워커가 컷을 나누고 캐릭터가 레퍼런스와 다르게 나온
         컷을 찾습니다. 검사 전에 캐릭터 탭에서 정면 사진을 등록해 주세요.
