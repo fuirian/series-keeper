@@ -55,6 +55,19 @@ tests/         pytest (DB·네트워크 없이 돌아감)
 2. `db.py`가 쿼리 전에 `set local role authenticated` + 토큰 내용을 DB에 넘긴다.
    → DB의 `auth.uid()`가 요청한 사용자가 되어 **기존 RLS 정책이 그대로** 걸린다. 백엔드 코드에 실수가 있어도 남의 데이터는 DB가 막는다.
 
+## 배포 (Google Cloud Run, 서울)
+
+웹(Vercel)·DB(Supabase)와 같은 서울 리전에 둔다.
+
+1. **처음 한 번 (직접):** [Google Cloud 콘솔](https://console.cloud.google.com)에서 프로젝트 만들기 → 결제 계정 연결 → [gcloud CLI 설치](https://cloud.google.com/sdk/docs/install) → `gcloud auth login`
+2. **배포:** `.\deploy.ps1 -ProjectId <프로젝트 ID>`
+   - 필요한 기능 켜기 → `api/.env`의 `DATABASE_URL`을 **Secret Manager**에 저장 → Dockerfile로 빌드·배포
+   - 코드만 다시 올릴 때: `.\deploy.ps1 -ProjectId <프로젝트 ID> -SkipSetup`
+3. **웹 연결:** Vercel → 프로젝트 → Settings → Environment Variables에 `API_URL` = 배포 주소 → 웹 다시 배포
+
+- 요청이 없으면 서버가 0대로 줄어든다(무료 한도 안). 한동안 안 쓰다 처음 부르면 몇 초 걸린다.
+- `.gcloudignore`가 `.env`·`.venv`를 올리지 않게 막는다. 비밀 값은 Secret Manager로만.
+
 ## 테스트
 
 ```powershell
