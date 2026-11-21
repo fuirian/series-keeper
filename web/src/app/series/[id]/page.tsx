@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
-import { SiteHeader } from "@/components/site-header";
+import { AppShell } from "@/components/app-shell";
 import { getSeries, STYLE_LABELS, type Series } from "@/lib/series";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { CharactersTab } from "./characters-tab";
@@ -128,14 +128,13 @@ async function SeriesDetail({
 export default function SeriesPage({ params, searchParams }: PageProps<"/series/[id]">) {
   return (
     <>
-      <SiteHeader />
-      <main className="flex flex-1 flex-col px-4 py-8 sm:px-6">
+      <AppShell mainClassName="flex flex-1 flex-col px-4 py-8 sm:px-6">
         <div className="mx-auto w-full max-w-5xl">
           <Suspense fallback={<p className="text-sm text-black/50 dark:text-white/50">불러오는 중…</p>}>
             <SeriesDetail params={params} searchParams={searchParams} />
           </Suspense>
         </div>
-      </main>
+      </AppShell>
     </>
   );
 }
