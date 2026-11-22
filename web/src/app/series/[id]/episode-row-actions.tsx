@@ -13,6 +13,7 @@ export function EpisodeRowActions({
   videoUrl,
   requestLabel,
   reportHref,
+  issueCount,
 }: {
   seriesId: string;
   episodeId: string;
@@ -20,6 +21,7 @@ export function EpisodeRowActions({
   videoUrl: string | null;
   requestLabel: string | null; // "검사하기" | "다시 검사" | null(검사 대기·중)
   reportHref: string | null; // 분석이 끝난 회차만
+  issueCount?: number | null; // 리포트 버튼에 보여 줄 이슈 수
 }) {
   const router = useRouter();
   const [showVideo, setShowVideo] = useState(false);
@@ -46,8 +48,31 @@ export function EpisodeRowActions({
   }
 
   return (
-    <div className="flex flex-col items-end gap-2">
-      <div className="flex gap-1">
+    <div className="flex flex-col items-stretch gap-2 sm:items-end">
+      {/* 검사가 끝난 회차의 가장 중요한 다음 행동: 리포트 보기 */}
+      {reportHref && (
+        <Link
+          href={reportHref}
+          className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold shadow-sm transition-opacity hover:opacity-90 ${
+            issueCount && issueCount > 0
+              ? "bg-red-600 text-white dark:bg-red-500"
+              : "bg-foreground text-background"
+          }`}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+            <path d="M14 3v6h6M8 13h8M8 17h5" />
+          </svg>
+          검수 리포트 보기
+          {issueCount != null && (
+            <span className="rounded-full bg-white/25 px-2 py-0.5 text-xs font-medium">
+              {issueCount > 0 ? `이슈 ${issueCount}` : "이슈 없음"}
+            </span>
+          )}
+          <span aria-hidden>→</span>
+        </Link>
+      )}
+      <div className="flex justify-end gap-1">
         {requestLabel && (
           <button
             type="button"
@@ -69,23 +94,6 @@ export function EpisodeRowActions({
             className="rounded-md px-2 py-1 text-xs hover:bg-black/5 dark:hover:bg-white/10"
           >
             {showVideo ? "닫기" : "미리보기"}
-          </button>
-        )}
-        {reportHref ? (
-          <Link
-            href={reportHref}
-            className="rounded-md bg-foreground px-2 py-1 text-xs font-medium text-background hover:opacity-90"
-          >
-            리포트
-          </Link>
-        ) : (
-          <button
-            type="button"
-            disabled
-            title="분석이 끝나면 열립니다"
-            className="rounded-md px-2 py-1 text-xs text-black/30 dark:text-white/30"
-          >
-            리포트
           </button>
         )}
         <button

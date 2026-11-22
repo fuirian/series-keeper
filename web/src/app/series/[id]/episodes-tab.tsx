@@ -100,6 +100,7 @@ export async function EpisodesTab({ seriesId, userId }: { seriesId: string; user
                     ep.status === "uploaded" ? "검사하기" : ep.status === "done" || ep.status === "failed" ? "다시 검사" : null
                   }
                   reportHref={ep.status === "done" ? `/series/${seriesId}/episodes/${ep.id}` : null}
+                  issueCount={ep.status === "done" ? (ep.analysis_summary?.issues ?? null) : null}
                 />
               </li>
             );
