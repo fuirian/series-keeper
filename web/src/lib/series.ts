@@ -16,6 +16,7 @@ export type Series = {
   title: string;
   style: SeriesStyle;
   style_note: string | null;
+  style_prompt?: string | null; // 화풍 프롬프트 (상세에서만 읽음, 재생성 키트에 씀)
   created_at: string;
 };
 
@@ -56,7 +57,7 @@ export async function getSeries(id: string): Promise<Series | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("series")
-    .select("id, title, style, style_note, created_at")
+    .select("id, title, style, style_note, style_prompt, created_at")
     .eq("id", id)
     .maybeSingle();
 

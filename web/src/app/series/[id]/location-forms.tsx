@@ -9,10 +9,11 @@ import {
   type LocationFormState,
 } from "@/app/actions/locations";
 import { FieldError, FormMessage, inputClass, submitClass } from "@/components/form";
+import { PromptField, PromptView } from "@/components/prompt-field";
 import { ReferencePicker, releasePicked, uploadPicked, type PickedImages } from "./reference-picker";
 
-type Values = { name?: string; description?: string; layoutNote?: string };
-type Errors = { name?: string; description?: string; layoutNote?: string };
+type Values = { name?: string; description?: string; layoutNote?: string; prompt?: string };
+type Errors = { name?: string; description?: string; layoutNote?: string; prompt?: string };
 
 function LocationFields({ idPrefix, values, errors = {} }: { idPrefix: string; values?: Values; errors?: Errors }) {
   return (
@@ -73,6 +74,12 @@ function LocationFields({ idPrefix, values, errors = {} }: { idPrefix: string; v
           </p>
         )}
       </div>
+      <PromptField
+        id={`${idPrefix}-prompt`}
+        defaultValue={values?.prompt}
+        error={errors.prompt}
+        placeholder="예: old two-story boarding house living room, warm wooden floor, afternoon sunlight, sofa by the window on the right"
+      />
     </>
   );
 }
@@ -175,7 +182,13 @@ export function LocationInfo({
   location,
 }: {
   seriesId: string;
-  location: { id: string; name: string; description: string | null; layout_note: string | null };
+  location: {
+    id: string;
+    name: string;
+    description: string | null;
+    layout_note: string | null;
+    prompt: string | null;
+  };
 }) {
   const [editing, setEditing] = useState(false);
   const [state, action, pending] = useActionState(
@@ -227,6 +240,7 @@ export function LocationInfo({
             <span className="whitespace-pre-line">{location.layout_note}</span>
           </div>
         )}
+        <PromptView prompt={location.prompt} />
       </div>
     );
   }
@@ -242,6 +256,7 @@ export function LocationInfo({
             name: location.name,
             description: location.description ?? "",
             layoutNote: location.layout_note ?? "",
+            prompt: location.prompt ?? "",
           }
         }
         errors={state?.errors}

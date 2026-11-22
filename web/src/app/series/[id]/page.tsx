@@ -67,6 +67,7 @@ function TabContent({ series, tab, userId }: { series: Series; tab: TabKey; user
               title: series.title,
               style: series.style,
               styleNote: series.style_note ?? "",
+              stylePrompt: series.style_prompt ?? "",
             }}
           />
           <section className="rounded-lg border border-red-600/30 p-4 dark:border-red-400/30">

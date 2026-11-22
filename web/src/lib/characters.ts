@@ -7,6 +7,7 @@ export type Character = {
   id: string;
   name: string;
   description: string | null;
+  prompt: string | null; // 생성용 프롬프트 (재생성 키트에 씀)
   created_at: string;
   images: Record<string, ReferenceImage>; // 각도(front·side·back·full) → 이미지
 };
@@ -19,6 +20,7 @@ type Row = {
   id: string;
   name: string;
   description: string | null;
+  prompt: string | null;
   created_at: string;
   reference_image: { angle: string; storage_path: string }[] | null;
 };
@@ -28,7 +30,7 @@ export async function listCharacters(seriesId: string): Promise<CharacterListRes
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("character")
-    .select("id, name, description, created_at, reference_image(angle, storage_path)")
+    .select("id, name, description, prompt, created_at, reference_image(angle, storage_path)")
     .eq("series_id", seriesId)
     .order("created_at", { ascending: true });
 
@@ -52,6 +54,7 @@ export async function listCharacters(seriesId: string): Promise<CharacterListRes
       id: r.id,
       name: r.name,
       description: r.description,
+      prompt: r.prompt,
       created_at: r.created_at,
       images: toImageMap(r.reference_image, urlByPath),
     })),

@@ -6,26 +6,28 @@ import { prepareSeriesFileCleanup } from "@/lib/references";
 import { isUuid, SERIES_STYLES, type SeriesStyle } from "@/lib/series";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 
-export type SeriesField = "title" | "style" | "styleNote";
+export type SeriesField = "title" | "style" | "styleNote" | "stylePrompt";
 
 export type SeriesFormState = {
   errors?: Partial<Record<SeriesField, string>>;
   message?: string;
   saved?: boolean;
-  values?: { title: string; style: string; styleNote: string };
+  values?: { title: string; style: string; styleNote: string; stylePrompt: string };
 } | undefined;
 
 function readSeriesForm(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const style = String(formData.get("style") ?? "");
   const styleNote = String(formData.get("styleNote") ?? "").trim();
-  const values = { title, style, styleNote };
+  const stylePrompt = String(formData.get("stylePrompt") ?? "").trim();
+  const values = { title, style, styleNote, stylePrompt };
 
   const errors: Partial<Record<SeriesField, string>> = {};
   if (!title) errors.title = "시리즈 제목을 입력해 주세요.";
   else if (title.length > 100) errors.title = "제목은 100자 이하로 써 주세요.";
   if (!SERIES_STYLES.includes(style as SeriesStyle)) errors.style = "화풍을 골라 주세요.";
   if (styleNote.length > 500) errors.styleNote = "스타일 메모는 500자 이하로 써 주세요.";
+  if (stylePrompt.length > 500) errors.stylePrompt = "화풍 프롬프트는 500자 이하로 써 주세요.";
 
   return { values, errors, hasErrors: Object.keys(errors).length > 0 };
 }
@@ -83,7 +85,12 @@ export async function updateSeries(_prev: SeriesFormState, formData: FormData): 
   // RLS 때문에 남의 시리즈는 조건에 걸리지 않아 0행이 바뀐다 → select로 확인
   const { data, error } = await supabase
     .from("series")
-    .update({ title: values.title, style: values.style, style_note: values.styleNote || null })
+    .update({
+      title: values.title,
+      style: values.style,
+      style_note: values.styleNote || null,
+      style_prompt: values.stylePrompt || null, // 설정 화면에서만 입력 (만들기 화면엔 없음)
+    })
     .eq("id", id)
     .select("id");
 

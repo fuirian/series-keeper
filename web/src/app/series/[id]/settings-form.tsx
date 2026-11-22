@@ -3,9 +3,10 @@
 import { useActionState } from "react";
 import { deleteSeries, updateSeries } from "@/app/actions/series";
 import { FormMessage, submitClass } from "@/components/form";
+import { PromptField } from "@/components/prompt-field";
 import { SeriesFields } from "@/components/series-fields";
 
-type Initial = { id: string; title: string; style: string; styleNote: string };
+type Initial = { id: string; title: string; style: string; styleNote: string; stylePrompt: string };
 
 export function SeriesSettingsForm({ initial }: { initial: Initial }) {
   const [state, action, pending] = useActionState(updateSeries, undefined);
@@ -15,6 +16,17 @@ export function SeriesSettingsForm({ initial }: { initial: Initial }) {
     <form action={action} className="flex flex-col gap-5" noValidate>
       <input type="hidden" name="id" value={initial.id} />
       <SeriesFields values={values} errors={state?.errors} />
+      <PromptField
+        // 저장 후 값이 바뀌면 칸도 새 값으로 다시 그린다
+        key={values.stylePrompt}
+        id="series-style-prompt"
+        name="stylePrompt"
+        label="화풍 프롬프트"
+        maxLength={500}
+        defaultValue={values.stylePrompt}
+        error={state?.errors?.stylePrompt}
+        placeholder="예: 2D anime style, soft cel shading, pastel color palette, clean line art"
+      />
       <FormMessage message={state?.message} />
       <div>
         <button type="submit" disabled={pending} className={submitClass}>
