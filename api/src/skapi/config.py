@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     supabase_url: str
+    # 웹과 같은 공개 키 (sb_publishable_…). Storage API를 부를 때 apikey 헤더로 쓴다. 비밀 값 아님
+    supabase_publishable_key: str = ""
     database_url: str
     # 쉼표로 구분한 문자열 그대로 받아서 cors_origin_list로 나눈다
     cors_origins: str = "http://localhost:3000"
