@@ -17,23 +17,15 @@ function apply(){var p=pref();var d=p==="dark"||(p!=="light"&&m.matches);documen
 apply();m.addEventListener("change",apply);window.addEventListener(${JSON.stringify(THEME_CHANGE_EVENT)},apply);window.addEventListener("storage",apply);
 })();`;
 
-export function readThemePref(): ThemePref {
-  try {
-    const v = localStorage.getItem(THEME_STORAGE_KEY);
-    return v === "light" || v === "dark" ? v : "system";
-  } catch {
-    return "system";
-  }
-}
-
 export function saveThemePref(pref: ThemePref) {
   try {
     if (pref === "system") localStorage.removeItem(THEME_STORAGE_KEY);
     else localStorage.setItem(THEME_STORAGE_KEY, pref);
   } catch {
     // 저장소를 못 쓰는 환경(사생활 보호 모드 등)에서는 이번 화면에만 적용된다
-    const dark = pref === "dark" || (pref === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
-    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
   }
+  // 시작 스크립트의 리스너에 기대지 않고 바로 적용한다
+  const dark = pref === "dark" || (pref === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
   window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
 }
