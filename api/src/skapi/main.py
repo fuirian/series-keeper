@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import Settings, get_settings
 from .db import create_pool
-from .routers import health, me, regen_kit, series
+from .routers import health, me, regen_kit, series, series_cover
 
 
 def create_app(settings: Settings | None = None, *, connect_db: bool = True) -> FastAPI:
@@ -39,7 +39,7 @@ def create_app(settings: Settings | None = None, *, connect_db: bool = True) -> 
         allow_headers=["Authorization", "Content-Type"],
     )
 
-    for module in (health, me, series, regen_kit):
+    for module in (health, me, series, series_cover, regen_kit):
         app.include_router(module.router, prefix="/v1")
 
     return app

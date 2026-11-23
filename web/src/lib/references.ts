@@ -51,16 +51,20 @@ export async function prepareImageCleanup(supabase: SupabaseClient, kind: Refere
  */
 export async function prepareSeriesFileCleanup(supabase: SupabaseClient, seriesId: string) {
   type Nested = Record<string, { storage_path: string }[] | null>;
-  const [characters, locations, episodes] = await Promise.all([
+  const [characters, locations, episodes, series] = await Promise.all([
     supabase.from("character").select("reference_image(storage_path)").eq("series_id", seriesId),
     supabase.from("location").select("location_image(storage_path)").eq("series_id", seriesId),
     supabase.from("episode").select("video_path").eq("series_id", seriesId),
+    supabase.from("series").select("cover_path").eq("id", seriesId).maybeSingle(),
   ]);
-  // 테이블이 아직 없으면(마이그레이션 전) 오류가 나지만, 지울 파일도 없으므로 무시한다
+  // 테이블·칸이 아직 없으면(마이그레이션 전) 오류가 나지만, 지울 파일도 없으므로 무시한다
+  const coverPath = (series.data as { cover_path?: string | null } | null)?.cover_path;
   const imagePaths = [
     ...((characters.data ?? []) as Nested[]).flatMap((c) => c.reference_image ?? []),
     ...((locations.data ?? []) as Nested[]).flatMap((l) => l.location_image ?? []),
-  ].map((i) => i.storage_path);
+  ]
+    .map((i) => i.storage_path)
+    .concat(coverPath ? [coverPath] : []);
   const videoPaths = ((episodes.data ?? []) as { video_path: string }[]).map((e) => e.video_path);
 
   return async () => {

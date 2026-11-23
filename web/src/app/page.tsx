@@ -13,8 +13,13 @@ function SeriesCard({ series }: { series: Series }) {
         href={`/series/${series.id}`}
         className="flex h-full flex-col rounded-lg border border-black/10 p-4 transition-colors hover:border-foreground dark:border-white/15"
       >
-        <div className="mb-3 flex aspect-video items-center justify-center rounded-md bg-black/5 text-xs text-black/40 dark:bg-white/5 dark:text-white/40">
-          대표 이미지 없음
+        <div className="mb-3 flex aspect-video items-center justify-center overflow-hidden rounded-md bg-black/5 text-xs text-black/40 dark:bg-white/5 dark:text-white/40">
+          {series.cover_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={series.cover_url} alt="" className="h-full w-full object-cover" />
+          ) : (
+            "대표 이미지 없음"
+          )}
         </div>
         <div className="flex items-center gap-2">
           <h3 className="truncate font-semibold">{series.title}</h3>

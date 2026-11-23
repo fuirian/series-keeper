@@ -37,3 +37,23 @@ async def sign_urls(settings: Settings, token: str, bucket: str, paths: list[str
         if signed and not item.get("error"):
             out[item["path"]] = f"{base}{signed}"
     return out
+
+
+async def remove_paths(settings: Settings, token: str, bucket: str, paths: list[str]) -> bool:
+    """파일 지우기 (사용자 권한). 실패해도 요청은 계속한다 — 남은 파일은 저장 공간만 차지한다."""
+    paths = [p for p in paths if p]
+    if not paths:
+        return True
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            res = await client.request(
+                "DELETE",
+                f"{settings.supabase_url.rstrip('/')}/storage/v1/object/{bucket}",
+                headers={"Authorization": f"Bearer {token}", "apikey": settings.supabase_publishable_key},
+                json={"prefixes": paths},
+            )
+            res.raise_for_status()
+        return True
+    except httpx.HTTPError as e:
+        log.warning("storage remove failed: %s", e)
+        return False

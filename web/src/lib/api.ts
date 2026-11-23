@@ -21,7 +21,7 @@ export type ApiResult<T> =
 
 /** 서버 액션에서 쓴다 (렌더링 중이 아니므로 connection() 불필요). */
 export async function apiRequest<T>(
-  method: "GET" | "POST" | "PATCH" | "DELETE",
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   path: string,
   body?: unknown,
 ): Promise<ApiResult<T>> {
