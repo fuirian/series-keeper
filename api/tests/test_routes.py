@@ -92,3 +92,52 @@ def test_cors_blocks_other_origin(client):
         headers={"Origin": "https://evil.example", "Access-Control-Request-Method": "GET"},
     )
     assert "access-control-allow-origin" not in res.headers
+
+
+class StatsConn:
+    """/v1/me/stats가 보내는 세 쿼리에 각각 다른 결과를 돌려준다."""
+
+    def __init__(self, storage, daily, issues):
+        self.storage, self.daily, self.issues = storage, daily, issues
+        self.args: list[tuple] = []
+
+    async def fetchrow(self, sql, *args):
+        return {"storage_bytes": self.storage}
+
+    async def fetch(self, sql, *args):
+        self.args.append(args)
+        return self.daily if "analysis_finished_at" in sql else self.issues
+
+
+def test_me_stats_fills_days_and_counts_issues(app, client):
+    from datetime import timedelta
+
+    from skapi.routers.me import STATS_DAYS, STATS_TZ
+
+    today = datetime.now(STATS_TZ).date()
+    conn = StatsConn(
+        storage=4_200_000,
+        daily=[{"day": today, "n": 2}, {"day": today - timedelta(days=3), "n": 1}],
+        issues=[{"review": "open", "n": 5}, {"review": "resolved", "n": 2}],
+    )
+    _use(app, conn)
+
+    res = client.get("/v1/me/stats", headers=auth_header(make_token()))
+
+    assert res.status_code == 200
+    body = res.json()
+    assert body["storage_bytes"] == 4_200_000
+    days = body["daily_checks"]
+    # 검사가 없던 날도 0으로 채워 오늘까지 30일
+    assert len(days) == STATS_DAYS
+    assert days[-1] == {"date": today.isoformat(), "count": 2}
+    assert days[-4]["count"] == 1
+    assert sum(d["count"] for d in days) == 3
+    assert body["issues"] == {"open": 5, "resolved": 2, "false_positive": 0}
+    # 기간 시작은 한국 시간 29일 전 자정
+    (since,) = conn.args[0]
+    assert since.date() == today - timedelta(days=STATS_DAYS - 1)
+
+
+def test_me_stats_requires_login(client):
+    assert client.get("/v1/me/stats").status_code == 401

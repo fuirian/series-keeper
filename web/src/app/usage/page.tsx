@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ApiErrorNotice, PageTitle, Section } from "@/components/page-parts";
-import { apiGet, type Me } from "@/lib/api";
+import { DailyChecksChart, IssueStatusChart, StorageGauge } from "@/components/usage-charts";
+import { apiGet, type Me, type UsageStats } from "@/lib/api";
 import { getCurrentUser } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -28,13 +29,27 @@ async function UsageContent() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const result = await apiGet<Me>("/v1/me");
+  const [result, stats] = await Promise.all([apiGet<Me>("/v1/me"), apiGet<UsageStats>("/v1/me/stats")]);
   if (!result.ok && result.reason === "unauthorized") redirect("/login");
   if (!result.ok) return <ApiErrorNotice result={result} />;
   const { usage } = result.data;
 
   return (
     <div className="flex flex-col gap-10">
+      <Section title="한눈에 보기">
+        {stats.ok ? (
+          <div className="grid gap-3 lg:grid-cols-2">
+            <StorageGauge bytes={stats.data.storage_bytes} />
+            <IssueStatusChart issues={stats.data.issues} />
+            <div className="lg:col-span-2">
+              <DailyChecksChart days={stats.data.daily_checks} />
+            </div>
+          </div>
+        ) : (
+          <ApiErrorNotice result={stats} />
+        )}
+      </Section>
+
       <Section title="만든 것">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <Stat label="시리즈" value={usage.series} />
