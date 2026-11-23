@@ -11,7 +11,7 @@ function SeriesCard({ series }: { series: Series }) {
     <li>
       <Link
         href={`/series/${series.id}`}
-        className="flex h-full flex-col rounded-lg border border-black/10 p-4 transition-colors hover:border-foreground dark:border-white/15"
+        className="flex h-full flex-col rounded-lg border border-black/10 p-4 transition-colors hover:border-primary-strong dark:border-white/15"
       >
         <div className="mb-3 flex aspect-video items-center justify-center overflow-hidden rounded-md bg-black/5 text-xs text-black/40 dark:bg-white/5 dark:text-white/40">
           {series.cover_url ? (
@@ -43,7 +43,7 @@ function NewSeriesCard() {
     <li>
       <Link
         href="/series/new"
-        className="flex h-full min-h-48 items-center justify-center rounded-lg border-2 border-dashed border-black/15 text-sm font-medium text-black/60 hover:border-foreground hover:text-foreground dark:border-white/20 dark:text-white/60"
+        className="flex h-full min-h-48 items-center justify-center rounded-lg border-2 border-dashed border-black/15 text-sm font-medium text-black/60 hover:border-primary-strong hover:text-foreground dark:border-white/20 dark:text-white/60"
       >
         + 새 시리즈 만들기
       </Link>
@@ -86,7 +86,9 @@ async function MySeries() {
 function Landing() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-      <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">SeriesKeeper</h1>
+      <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
+        Series<span className="text-primary-strong">Keeper</span>
+      </h1>
       <p className="max-w-lg text-black/60 dark:text-white/60">
         AI로 만든 연재물의 캐릭터·장소를 시리즈 단위로 관리하고,
         <br />
@@ -106,7 +108,7 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
       {query.verified === "1" && (
         <p
           role="status"
-          className="mb-6 rounded-md bg-green-50 px-4 py-3 text-sm text-green-800 dark:bg-green-950/40 dark:text-green-300"
+          className="mb-6 rounded-md bg-teal-50 px-4 py-3 text-sm text-teal-800 dark:bg-teal-950/40 dark:text-teal-300"
         >
           이메일 인증이 완료되었습니다. 가입을 환영합니다!
         </p>
@@ -115,7 +117,7 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
         <h2 className="text-xl font-semibold">내 시리즈</h2>
         <Link
           href="/series/new"
-          className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:bg-primary-hover"
         >
           + 새 시리즈
         </Link>

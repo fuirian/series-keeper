@@ -28,8 +28,9 @@ function reportHref(base: string, q: Query) {
 }
 
 const REVIEW_STYLES = {
-  open: "border-black/15 text-black/60 dark:border-white/20 dark:text-white/60",
-  resolved: "border-green-700/40 text-green-800 dark:border-green-400/40 dark:text-green-300",
+  // 미처리 이슈는 핑크(주요 버튼)와 헷갈리지 않게 진한 빨강
+  open: "border-red-600/40 bg-red-50 text-red-700 dark:border-red-400/40 dark:bg-red-950/40 dark:text-red-300",
+  resolved: "border-teal-700/40 text-teal-800 dark:border-teal-400/40 dark:text-teal-300",
   false_positive: "border-black/15 text-black/40 line-through dark:border-white/20 dark:text-white/40",
 } as const;
 
@@ -49,7 +50,7 @@ function ImageBox({ url, alt, caption, highlight }: { url: string | null; alt: s
     <figure className="flex min-w-0 flex-1 flex-col gap-1">
       <figcaption className="text-xs text-black/50 dark:text-white/50">{caption}</figcaption>
       <div
-        className={`flex aspect-video items-center justify-center overflow-hidden rounded-md bg-black/5 dark:bg-white/5 ${
+        className={`flex aspect-video items-center justify-center overflow-hidden rounded-md bg-frame ${
           highlight ? "ring-2 ring-red-500" : ""
         }`}
       >
@@ -58,7 +59,7 @@ function ImageBox({ url, alt, caption, highlight }: { url: string | null; alt: s
           // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt={alt} className="h-full w-full object-contain" />
         ) : (
-          <span className="text-xs text-black/40 dark:text-white/40">이미지 없음</span>
+          <span className="text-xs text-white/50">이미지 없음</span>
         )}
       </div>
     </figure>
@@ -136,11 +137,11 @@ function ComparePanel({
           <figure className="flex min-w-0 flex-1 flex-col gap-1">
             <figcaption className="text-xs text-black/50 dark:text-white/50">그 컷 영상</figcaption>
             {videoSrc ? (
-              <video src={videoSrc} controls preload="metadata" className="aspect-video w-full rounded-md bg-black">
+              <video src={videoSrc} controls preload="metadata" className="aspect-video w-full rounded-md bg-frame">
                 <track kind="captions" />
               </video>
             ) : (
-              <div className="flex aspect-video items-center justify-center rounded-md bg-black/5 text-xs text-black/40 dark:bg-white/5">
+              <div className="flex aspect-video items-center justify-center rounded-md bg-frame text-xs text-white/50">
                 영상 없음
               </div>
             )}
@@ -356,7 +357,7 @@ async function Report({
                       selected?.id === i.id ? "bg-black/5 dark:bg-white/10" : ""
                     }`}
                   >
-                    <div className="h-12 w-20 shrink-0 overflow-hidden rounded bg-black/5 dark:bg-white/5">
+                    <div className="h-12 w-20 shrink-0 overflow-hidden rounded bg-frame">
                       {i.frame_url && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={i.frame_url} alt="" className="h-full w-full object-cover" />

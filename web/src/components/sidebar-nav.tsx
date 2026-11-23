@@ -71,7 +71,7 @@ export function SidebarNav() {
             aria-current={active ? "page" : undefined}
             className={`flex shrink-0 items-center gap-2.5 rounded-md px-3 py-2 text-sm ${
               active
-                ? "bg-black/5 font-semibold text-foreground dark:bg-white/10"
+                ? "bg-primary-soft font-semibold text-primary-strong"
                 : "text-black/60 hover:bg-black/5 hover:text-foreground dark:text-white/60 dark:hover:bg-white/10"
             }`}
           >

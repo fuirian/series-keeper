@@ -36,7 +36,7 @@ async function MyPageContent() {
           <dt className="text-black/50 dark:text-white/50">이메일 인증</dt>
           <dd>
             {me?.email_confirmed_at ? (
-              <span className="text-green-800 dark:text-green-300">완료 ({formatDate(me.email_confirmed_at)})</span>
+              <span className="text-teal-800 dark:text-teal-300">완료 ({formatDate(me.email_confirmed_at)})</span>
             ) : me ? (
               "미완료"
             ) : (

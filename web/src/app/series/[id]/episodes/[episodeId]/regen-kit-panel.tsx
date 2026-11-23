@@ -81,7 +81,7 @@ export function RegenKitPanel({ seriesId, issueId }: { seriesId: string; issueId
             type="button"
             onClick={() => load({}, true)}
             disabled={isPending}
-            className="shrink-0 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
+            className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
           >
             {isPending ? "정리하는 중…" : "다시 만들기 키트"}
           </button>
@@ -197,12 +197,12 @@ export function RegenKitPanel({ seriesId, issueId }: { seriesId: string; issueId
             <ol className="flex flex-wrap gap-3">
               {kit.references.map((r) => (
                 <li key={r.order} className="flex w-24 flex-col gap-1">
-                  <div className="relative aspect-square overflow-hidden rounded-md bg-black/5 dark:bg-white/5">
+                  <div className="relative aspect-square overflow-hidden rounded-md bg-frame">
                     {r.url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={r.url} alt={r.label} className="h-full w-full object-cover" />
                     ) : (
-                      <span className="flex h-full items-center justify-center text-xs text-black/40">없음</span>
+                      <span className="flex h-full items-center justify-center text-xs text-white/50">없음</span>
                     )}
                     <span className="absolute left-1 top-1 rounded bg-black/70 px-1.5 text-xs font-semibold text-white">
                       {r.order}

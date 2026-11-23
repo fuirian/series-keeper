@@ -1,11 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export const inputClass =
-  "w-full rounded-md border border-black/15 bg-transparent px-3 py-2 text-sm outline-none focus:border-foreground dark:border-white/20 aria-[invalid=true]:border-red-500";
+  "w-full rounded-md border border-black/15 bg-surface px-3 py-2 text-sm outline-none focus:border-primary-strong focus:ring-2 focus:ring-primary/40 dark:border-white/20 aria-[invalid=true]:border-red-500";
 
 export const submitClass =
-  "mt-2 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50";
+  "mt-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50";
 
 export function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
@@ -29,10 +30,11 @@ export function FormMessage({ message }: { message?: string }) {
 export function AuthLayout({ title, children }: { title: string; children: ReactNode }) {
   return (
     <>
-      <header className="px-4 py-4 sm:px-6">
+      <header className="flex items-center justify-between px-4 py-4 sm:px-6">
         <Link href="/" className="text-lg font-semibold tracking-tight">
-          SeriesKeeper
+          Series<span className="text-primary-strong">Keeper</span>
         </Link>
+        <ThemeToggle />
       </header>
       <main className="flex flex-1 items-center justify-center px-4 pb-16">
         <div className="w-full max-w-sm">
