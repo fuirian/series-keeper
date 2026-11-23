@@ -69,6 +69,14 @@ export async function apiGet<T>(path: string): Promise<ApiResult<T>> {
   return apiRequest<T>("GET", path);
 }
 
+/** GET /v1/me/stats 응답 (api/src/skapi/routers/me.py의 UsageStats와 같은 모양) */
+export type UsageStats = {
+  storage_bytes: number;
+  /** 오늘(한국 날짜)까지 30일, 검사가 없던 날은 0 */
+  daily_checks: { date: string; count: number }[];
+  issues: { open: number; resolved: number; false_positive: number };
+};
+
 /** GET /v1/me 응답 (api/src/skapi/routers/me.py의 Me와 같은 모양) */
 export type Me = {
   id: string;
