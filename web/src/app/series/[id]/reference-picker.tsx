@@ -62,7 +62,7 @@ function PickerSlot({
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
         aria-label={`${label} 사진 ${picked ? "바꾸기" : "고르기"}`}
-        className="flex aspect-square w-20 items-center justify-center overflow-hidden rounded-md border border-dashed border-black/20 bg-black/5 text-center text-xs text-black/50 hover:border-foreground disabled:opacity-60 dark:border-white/25 dark:bg-white/5 dark:text-white/50"
+        className="flex aspect-square w-20 items-center justify-center overflow-hidden rounded-md border border-dashed border-black/20 bg-black/5 text-center text-xs text-black/50 hover:border-primary-strong disabled:opacity-60 dark:border-white/25 dark:bg-white/5 dark:text-white/50"
       >
         {picked ? (
           // 로컬 미리보기(blob: URL)라 next/image를 쓰지 않는다

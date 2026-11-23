@@ -118,7 +118,7 @@ export function AddCharacterForm({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:bg-primary-hover"
         >
           + 캐릭터 추가
         </button>
@@ -237,7 +237,7 @@ export function CharacterInfo({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
+          className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
         >
           {pending ? "저장 중…" : "저장"}
         </button>

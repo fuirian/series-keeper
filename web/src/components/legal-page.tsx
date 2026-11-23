@@ -8,7 +8,7 @@ export function LegalPage({ title, children }: { title: string; children: ReactN
     <>
       <header className="px-4 py-4 sm:px-6">
         <Link href="/" className="text-lg font-semibold tracking-tight">
-          SeriesKeeper
+          Series<span className="text-primary-strong">Keeper</span>
         </Link>
       </header>
       <main className="flex-1 px-4 pb-16">

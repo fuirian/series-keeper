@@ -31,7 +31,7 @@ async function UserMenu() {
       </Link>
       <Link
         href="/signup"
-        className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:bg-primary-hover"
       >
         회원가입
       </Link>
@@ -43,7 +43,7 @@ export function SiteHeader() {
   return (
     <header className="flex h-[4.25rem] items-center justify-between gap-2 border-b border-black/5 px-4 sm:px-6 dark:border-white/10">
       <Link href="/" className="text-lg font-semibold tracking-tight">
-        SeriesKeeper
+        Series<span className="text-primary-strong">Keeper</span>
       </Link>
       <div className="flex min-w-0 items-center gap-2">
         <Suspense fallback={null}>

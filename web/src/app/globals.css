@@ -1,30 +1,74 @@
 @import "tailwindcss";
 
+/*
+ * 색 테마: 파스텔 핑크 "다정한 스크립터"
+ * - 화면 대부분은 핑크빛이 살짝 도는 무채색, 핑크는 '다음에 할 행동'(주요 버튼·선택된 메뉴)에만
+ * - 영상·프레임 뒤 배경(frame)은 라이트·다크 모두 무채색 회색으로 고정한다.
+ *   검수에서 머리색·피부색을 비교해야 하므로 프레임 주변에 핑크를 쓰지 않는다.
+ * - 상태 색: 미처리·실패 = 빨강, 해결됨·완료 = 민트(teal), 진행 중 = 파랑
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fff6fa;
+  --foreground: #2b2328;
+  --surface: #ffffff;
+  --line: #f0dce6;
+  --primary: #f7b6d2;
+  --primary-hover: #f3a1c4;
+  --on-primary: #5a1e3d;
+  --primary-soft: #fce4ef;
+  --primary-strong: #8e3b63;
+  --frame: #2a2b30;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #18141a;
+    --foreground: #f3ecf0;
+    --surface: #221c23;
+    --line: #3a2f38;
+    --primary: #f7b6d2;
+    --primary-hover: #fac8dd;
+    --on-primary: #5a1e3d;
+    --primary-soft: #3d2433;
+    --primary-strong: #f7b6d2;
+    --frame: #0f1012;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-strong: var(--primary-strong);
+  --color-frame: var(--frame);
+  --font-sans: "Pretendard Variable", Pretendard, var(--font-geist-sans), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  /*
+   * 화면 곳곳의 text-black/60, border-black/10 같은 옅은 글자·선이
+   * 새까만 색 대신 테마의 짙은 자두색을 바탕으로 섞이게 한다 (핑크 배경과 어울리게).
+   */
+  --color-black: #2b2328;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans);
   /* 한국어가 글자 중간("회/차")에서 끊기지 않고 단어 단위로 줄바꿈되게 */
   word-break: keep-all;
   /* 단, 이메일·URL처럼 아주 긴 단어는 화면 밖으로 넘치지 않게 끊는다 */
   overflow-wrap: break-word;
+}
+
+/* 링크·체크박스 등 브라우저 기본 강조색도 테마에 맞춘다 */
+:root {
+  accent-color: var(--primary-strong);
 }

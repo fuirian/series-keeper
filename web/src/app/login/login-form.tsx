@@ -55,7 +55,7 @@ export function LoginForm({ notice }: { notice?: string }) {
 
       <p className="text-center text-sm text-black/60 dark:text-white/60">
         계정이 없나요?{" "}
-        <Link href="/signup" className="font-medium text-foreground underline underline-offset-4">
+        <Link href="/signup" className="font-medium text-primary-strong underline underline-offset-4">
           회원가입
         </Link>
       </p>

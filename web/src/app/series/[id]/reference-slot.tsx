@@ -63,7 +63,7 @@ export function ReferenceSlot({ kind, userId, seriesId, entityId, angle, imageUr
         onClick={() => inputRef.current?.click()}
         disabled={busy}
         aria-label={`${label} 이미지 ${hasImage ? "바꾸기" : "올리기"}`}
-        className="relative flex aspect-square w-24 items-center justify-center overflow-hidden rounded-md border border-dashed border-black/20 bg-black/5 text-center text-xs text-black/50 hover:border-foreground disabled:opacity-60 dark:border-white/25 dark:bg-white/5 dark:text-white/50"
+        className="relative flex aspect-square w-24 items-center justify-center overflow-hidden rounded-md border border-dashed border-black/20 bg-black/5 text-center text-xs text-black/50 hover:border-primary-strong disabled:opacity-60 dark:border-white/25 dark:bg-white/5 dark:text-white/50"
       >
         {imageUrl ? (
           // 서명 URL(매번 바뀜)이라 next/image 최적화 대신 그대로 보여 준다

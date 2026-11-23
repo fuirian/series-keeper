@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+// 한글 본문 글꼴. 쓰는 글자만 나눠 받는 dynamic subset이라 가볍다 (npm 패키지라 외부 CDN 없이 함께 배포됨)
+import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
 
 const geistSans = Geist({

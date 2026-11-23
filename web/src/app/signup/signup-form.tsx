@@ -5,7 +5,7 @@ import { useActionState } from "react";
 import { signup } from "@/app/actions/auth";
 import { FieldError, FormMessage, inputClass, submitClass } from "@/components/form";
 
-const termsLinkClass = "font-medium underline underline-offset-4";
+const termsLinkClass = "font-medium text-primary-strong underline underline-offset-4";
 
 export function SignupForm() {
   const [state, action, pending] = useActionState(signup, undefined);
@@ -112,7 +112,7 @@ export function SignupForm() {
 
       <p className="text-center text-sm text-black/60 dark:text-white/60">
         이미 계정이 있나요?{" "}
-        <Link href="/login" className="font-medium text-foreground underline underline-offset-4">
+        <Link href="/login" className="font-medium text-primary-strong underline underline-offset-4">
           로그인
         </Link>
       </p>

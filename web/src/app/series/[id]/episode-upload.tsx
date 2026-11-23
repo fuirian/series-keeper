@@ -242,7 +242,7 @@ export function EpisodeUpload({ userId, seriesId, nextNumber }: { userId: string
             aria-valuenow={Math.round(progress * 100)}
             aria-label="업로드 진행률"
           >
-            <div className="h-full bg-foreground transition-[width]" style={{ width: `${progress * 100}%` }} />
+            <div className="h-full bg-primary transition-[width]" style={{ width: `${progress * 100}%` }} />
           </div>
           <span className="w-10 text-right text-sm tabular-nums">{Math.round(progress * 100)}%</span>
           <button

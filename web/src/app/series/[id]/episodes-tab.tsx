@@ -10,7 +10,7 @@ const STATUS_STYLES: Record<EpisodeStatus, string> = {
   uploaded: "border-black/15 text-black/60 dark:border-white/20 dark:text-white/60",
   pending: "border-black/15 text-black/60 dark:border-white/20 dark:text-white/60",
   processing: "border-blue-600/40 text-blue-700 dark:border-blue-400/40 dark:text-blue-300",
-  done: "border-green-700/40 text-green-800 dark:border-green-400/40 dark:text-green-300",
+  done: "border-teal-700/40 text-teal-800 dark:border-teal-400/40 dark:text-teal-300",
   failed: "border-red-600/40 text-red-700 dark:border-red-400/40 dark:text-red-300",
 };
 
@@ -78,7 +78,7 @@ export async function EpisodesTab({ seriesId, userId }: { seriesId: string; user
                           이슈 {ep.analysis_summary.issues}개
                         </span>
                       ) : (
-                        <span className="text-green-800 dark:text-green-300">이슈 없음</span>
+                        <span className="text-teal-800 dark:text-teal-300">이슈 없음</span>
                       )}
                     </p>
                   )}
