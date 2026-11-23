@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { logout } from "@/app/actions/auth";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { getCurrentUser } from "@/lib/supabase/server";
 
 const ghostButton =
@@ -46,6 +47,7 @@ export function SiteHeader() {
         Series<span className="text-primary-strong">Keeper</span>
       </Link>
       <div className="flex min-w-0 items-center gap-2">
+        <ThemeToggle />
         <Suspense fallback={null}>
           <UserMenu />
         </Suspense>

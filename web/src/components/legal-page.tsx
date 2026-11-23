@@ -1,15 +1,17 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { LEGAL } from "@/lib/legal";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 /** 이용약관·개인정보 처리방침 공통 틀. 로그인 없이 볼 수 있다. */
 export function LegalPage({ title, children }: { title: string; children: ReactNode }) {
   return (
     <>
-      <header className="px-4 py-4 sm:px-6">
+      <header className="flex items-center justify-between px-4 py-4 sm:px-6">
         <Link href="/" className="text-lg font-semibold tracking-tight">
           Series<span className="text-primary-strong">Keeper</span>
         </Link>
+        <ThemeToggle />
       </header>
       <main className="flex-1 px-4 pb-16">
         <article className="mx-auto w-full max-w-2xl text-sm leading-relaxed">

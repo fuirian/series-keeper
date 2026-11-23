@@ -20,19 +20,29 @@
   --frame: #2a2b30;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #18141a;
-    --foreground: #f3ecf0;
-    --surface: #221c23;
-    --line: #3a2f38;
-    --primary: #f7b6d2;
-    --primary-hover: #fac8dd;
-    --on-primary: #5a1e3d;
-    --primary-soft: #3d2433;
-    --primary-strong: #f7b6d2;
-    --frame: #0f1012;
-  }
+/*
+ * 다크 모드는 <html data-theme="dark">일 때 켜진다.
+ * layout.tsx의 시작 스크립트가 저장된 선택(라이트·다크·시스템)을 읽어 화면이 그려지기 전에 붙인다.
+ * 'dark:' 클래스도 같은 기준을 따르도록 바꾼다 (기본값은 OS 설정만 봄).
+ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #18141a;
+  --foreground: #f3ecf0;
+  --surface: #221c23;
+  --line: #3a2f38;
+  --primary: #f7b6d2;
+  --primary-hover: #fac8dd;
+  --on-primary: #5a1e3d;
+  --primary-soft: #3d2433;
+  --primary-strong: #f7b6d2;
+  --frame: #0f1012;
 }
 
 @theme inline {
