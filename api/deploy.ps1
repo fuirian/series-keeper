@@ -29,6 +29,7 @@ function Read-DotEnv([string]$name) {
 }
 
 $supabaseUrl = Read-DotEnv "SUPABASE_URL"
+$publishableKey = Read-DotEnv "SUPABASE_PUBLISHABLE_KEY"  # 공개 키 (비밀 아님)
 
 gcloud config set project $ProjectId | Out-Null
 
@@ -66,7 +67,7 @@ gcloud run deploy $Service `
   --min-instances 0 `
   --max-instances 3 `
   --memory 512Mi `
-  --set-env-vars "^@^SUPABASE_URL=$supabaseUrl@CORS_ORIGINS=$WebOrigins" `
+  --set-env-vars "^@^SUPABASE_URL=$supabaseUrl@SUPABASE_PUBLISHABLE_KEY=$publishableKey@CORS_ORIGINS=$WebOrigins" `
   --set-secrets "DATABASE_URL=skapi-database-url:latest"
 
 $url = gcloud run services describe $Service --region $Region --format="value(status.url)"

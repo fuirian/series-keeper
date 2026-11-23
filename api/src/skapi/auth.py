@@ -35,6 +35,8 @@ class CurrentUser:
     id: str
     email: str | None
     claims: dict[str, Any]
+    # 원래 토큰. Supabase Storage를 이 사용자 권한으로 부를 때 그대로 넘긴다
+    token: str = ""
 
 
 def _unauthorized(detail: str) -> HTTPException:
@@ -72,7 +74,7 @@ def get_current_user(
     if credentials is None:
         raise _unauthorized("로그인이 필요합니다.")
     claims = verify_token(credentials.credentials, jwks, settings)
-    return CurrentUser(id=claims["sub"], email=claims.get("email"), claims=claims)
+    return CurrentUser(id=claims["sub"], email=claims.get("email"), claims=claims, token=credentials.credentials)
 
 
 CurrentUserDep = Annotated[CurrentUser, Depends(get_current_user)]

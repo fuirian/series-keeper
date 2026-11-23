@@ -6,14 +6,14 @@ import { prepareImageCleanup } from "@/lib/references";
 import { isUuid } from "@/lib/series";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 
-export type LocationField = "name" | "description" | "layoutNote";
+export type LocationField = "name" | "description" | "layoutNote" | "prompt";
 
 export type LocationFormState = {
   errors?: Partial<Record<LocationField, string>>;
   message?: string;
   saved?: boolean;
   createdId?: string; // 추가 성공 시 새 장소 id (이어서 사진을 올릴 때 사용)
-  values?: { name: string; description: string; layoutNote: string };
+  values?: { name: string; description: string; layoutNote: string; prompt: string };
 } | undefined;
 
 async function requireUser() {
@@ -26,13 +26,15 @@ function readLocationForm(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const layoutNote = String(formData.get("layoutNote") ?? "").trim();
-  const values = { name, description, layoutNote };
+  const prompt = String(formData.get("prompt") ?? "").trim();
+  const values = { name, description, layoutNote, prompt };
 
   const errors: Partial<Record<LocationField, string>> = {};
   if (!name) errors.name = "장소 이름을 입력해 주세요.";
   else if (name.length > 50) errors.name = "이름은 50자 이하로 써 주세요.";
   if (description.length > 1000) errors.description = "설명은 1000자 이하로 써 주세요.";
   if (layoutNote.length > 1000) errors.layoutNote = "배치 메모는 1000자 이하로 써 주세요.";
+  if (prompt.length > 1000) errors.prompt = "생성용 프롬프트는 1000자 이하로 써 주세요.";
   return { values, errors, hasErrors: Object.keys(errors).length > 0 };
 }
 
@@ -62,6 +64,7 @@ export async function createLocation(_prev: LocationFormState, formData: FormDat
       name: values.name,
       description: values.description || null,
       layout_note: values.layoutNote || null,
+      prompt: values.prompt || null,
     })
     .select("id")
     .single();
@@ -91,6 +94,7 @@ export async function updateLocation(_prev: LocationFormState, formData: FormDat
       name: values.name,
       description: values.description || null,
       layout_note: values.layoutNote || null,
+      prompt: values.prompt || null,
     })
     .eq("id", id)
     .select("id");

@@ -6,14 +6,14 @@ import { prepareImageCleanup } from "@/lib/references";
 import { isUuid } from "@/lib/series";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 
-export type CharacterField = "name" | "description";
+export type CharacterField = "name" | "description" | "prompt";
 
 export type CharacterFormState = {
   errors?: Partial<Record<CharacterField, string>>;
   message?: string;
   saved?: boolean;
   createdId?: string; // 추가 성공 시 새 캐릭터 id (이어서 사진을 올릴 때 사용)
-  values?: { name: string; description: string };
+  values?: { name: string; description: string; prompt: string };
 } | undefined;
 
 async function requireUser() {
@@ -25,11 +25,13 @@ async function requireUser() {
 function readCharacterForm(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
-  const values = { name, description };
+  const prompt = String(formData.get("prompt") ?? "").trim();
+  const values = { name, description, prompt };
   const errors: Partial<Record<CharacterField, string>> = {};
   if (!name) errors.name = "캐릭터 이름을 입력해 주세요.";
   else if (name.length > 50) errors.name = "이름은 50자 이하로 써 주세요.";
   if (description.length > 1000) errors.description = "외형 설명은 1000자 이하로 써 주세요.";
+  if (prompt.length > 1000) errors.prompt = "생성용 프롬프트는 1000자 이하로 써 주세요.";
   return { values, errors, hasErrors: Object.keys(errors).length > 0 };
 }
 
@@ -56,7 +58,12 @@ export async function createCharacter(_prev: CharacterFormState, formData: FormD
   // 남의 시리즈에 넣으려 하면 RLS(insert 정책)가 막는다
   const { data, error } = await supabase
     .from("character")
-    .insert({ series_id: seriesId, name: values.name, description: values.description || null })
+    .insert({
+      series_id: seriesId,
+      name: values.name,
+      description: values.description || null,
+      prompt: values.prompt || null,
+    })
     .select("id")
     .single();
 
@@ -81,7 +88,7 @@ export async function updateCharacter(_prev: CharacterFormState, formData: FormD
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("character")
-    .update({ name: values.name, description: values.description || null })
+    .update({ name: values.name, description: values.description || null, prompt: values.prompt || null })
     .eq("id", id)
     .select("id");
 

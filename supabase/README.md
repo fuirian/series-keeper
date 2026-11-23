@@ -22,6 +22,8 @@
 | `20261120000500_create_analysis.sql` | 분석 결과 `shot`·`issue` 테이블, 회차 분석 정보 컬럼, 워커용 `claim_next_episode()` 함수 |
 | `20261120000600_issue_review.sql` | 이슈 `resolved`(예/아니오) → `review`(미처리·해결됨·오탐) |
 | `20261120000700_episode_uploaded_status.sql` | 회차 `uploaded`(검사 전) 상태 — 업로드 후 '검사하기'를 눌러야 검사 대기 |
+| `20261122000800_regen_kit.sql` | 재생성 키트: 캐릭터·장소 `prompt`, 시리즈 `style_prompt` 칸, 키트 사용 기록 `regen_kit_event` |
+| `20261122000900_series_cover.sql` | 시리즈 대표 이미지 `cover_path` (파일은 `references/{user}/{series}/cover/`) |
 
 ## 원칙
 

@@ -8,6 +8,7 @@ import { getEpisodeReport, type CharacterRefs, type ReportIssue } from "@/lib/re
 import { formatTimecode, ISSUE_TYPE_LABELS, REVIEW_LABELS } from "@/lib/report-constants";
 import { getSeries } from "@/lib/series";
 import { getCurrentUser } from "@/lib/supabase/server";
+import { RegenKitPanel } from "./regen-kit-panel";
 import { ReviewButtons } from "./review-buttons";
 
 export const metadata: Metadata = {
@@ -156,6 +157,8 @@ function ComparePanel({
           <span className="self-end text-xs text-black/40 dark:text-white/40">다른 각도 레퍼런스</span>
         </div>
       )}
+
+      <RegenKitPanel key={issue.id} seriesId={seriesId} issueId={issue.id} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm">

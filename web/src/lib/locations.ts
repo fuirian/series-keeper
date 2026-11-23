@@ -8,6 +8,7 @@ export type Location = {
   name: string;
   description: string | null;
   layout_note: string | null;
+  prompt: string | null; // 생성용 프롬프트 (재생성 키트에 씀)
   created_at: string;
   images: Record<string, ReferenceImage>; // 각도(wide·angle1·angle2·detail) → 이미지
 };
@@ -25,7 +26,7 @@ export async function listLocations(seriesId: string): Promise<LocationListResul
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("location")
-    .select("id, name, description, layout_note, created_at, location_image(angle, storage_path)")
+    .select("id, name, description, layout_note, prompt, created_at, location_image(angle, storage_path)")
     .eq("series_id", seriesId)
     .order("created_at", { ascending: true });
 

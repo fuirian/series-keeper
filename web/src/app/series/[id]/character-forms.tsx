@@ -9,10 +9,11 @@ import {
   type CharacterFormState,
 } from "@/app/actions/characters";
 import { FieldError, FormMessage, inputClass, submitClass } from "@/components/form";
+import { PromptField, PromptView } from "@/components/prompt-field";
 import { ReferencePicker, releasePicked, uploadPicked, type PickedImages } from "./reference-picker";
 
-type Values = { name?: string; description?: string };
-type Errors = { name?: string; description?: string };
+type Values = { name?: string; description?: string; prompt?: string };
+type Errors = { name?: string; description?: string; prompt?: string };
 
 function CharacterFields({ idPrefix, values, errors = {} }: { idPrefix: string; values?: Values; errors?: Errors }) {
   return (
@@ -50,6 +51,12 @@ function CharacterFields({ idPrefix, values, errors = {} }: { idPrefix: string; 
         />
         <FieldError id={`${idPrefix}-description-error`} message={errors.description} />
       </div>
+      <PromptField
+        id={`${idPrefix}-prompt`}
+        defaultValue={values?.prompt}
+        error={errors.prompt}
+        placeholder="예: young Korean woman, early 20s, shoulder-length straight black hair, small mole under left eye, beige knit sweater"
+      />
     </>
   );
 }
@@ -152,7 +159,7 @@ export function CharacterInfo({
   character,
 }: {
   seriesId: string;
-  character: { id: string; name: string; description: string | null };
+  character: { id: string; name: string; description: string | null; prompt: string | null };
 }) {
   const [editing, setEditing] = useState(false);
   const [state, action, pending] = useActionState(
@@ -198,6 +205,7 @@ export function CharacterInfo({
         <p className="mt-1 whitespace-pre-line text-sm text-black/60 dark:text-white/60">
           {character.description || "외형 설명이 없습니다."}
         </p>
+        <PromptView prompt={character.prompt} />
       </div>
     );
   }
@@ -208,7 +216,13 @@ export function CharacterInfo({
       <input type="hidden" name="seriesId" value={seriesId} />
       <CharacterFields
         idPrefix={`edit-${character.id}`}
-        values={state?.values ?? { name: character.name, description: character.description ?? "" }}
+        values={
+          state?.values ?? {
+            name: character.name,
+            description: character.description ?? "",
+            prompt: character.prompt ?? "",
+          }
+        }
         errors={state?.errors}
       />
       <FormMessage message={state?.message} />

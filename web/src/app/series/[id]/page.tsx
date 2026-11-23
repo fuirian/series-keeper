@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { getSeries, STYLE_LABELS, type Series } from "@/lib/series";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { CharactersTab } from "./characters-tab";
+import { CoverField } from "./cover-field";
 import { EpisodesTab } from "./episodes-tab";
 import { LocationsTab } from "./locations-tab";
 import { DeleteSeriesButton, SeriesSettingsForm } from "./settings-form";
@@ -61,12 +62,14 @@ function TabContent({ series, tab, userId }: { series: Series; tab: TabKey; user
     case "settings":
       return (
         <div className="flex max-w-lg flex-col gap-10">
+          <CoverField userId={userId} seriesId={series.id} coverUrl={series.cover_url ?? null} />
           <SeriesSettingsForm
             initial={{
               id: series.id,
               title: series.title,
               style: series.style,
               styleNote: series.style_note ?? "",
+              stylePrompt: series.style_prompt ?? "",
             }}
           />
           <section className="rounded-lg border border-red-600/30 p-4 dark:border-red-400/30">
@@ -105,18 +108,30 @@ async function SeriesDetail({
         <Link href="/" className="text-sm text-black/50 hover:text-foreground dark:text-white/50">
           ← 내 시리즈
         </Link>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">{series.title}</h1>
-          <span className="rounded-full border border-black/15 px-2 py-0.5 text-xs dark:border-white/20">
-            {STYLE_LABELS[series.style] ?? series.style}
-          </span>
+        <div className="mt-2 flex items-start gap-4">
+          {series.cover_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={series.cover_url}
+              alt=""
+              className="hidden aspect-video w-32 shrink-0 rounded-md object-cover sm:block"
+            />
+          )}
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight">{series.title}</h1>
+              <span className="rounded-full border border-black/15 px-2 py-0.5 text-xs dark:border-white/20">
+                {STYLE_LABELS[series.style] ?? series.style}
+              </span>
+            </div>
+            {series.style_note && (
+              <p className="mt-1 text-sm text-black/60 dark:text-white/60">{series.style_note}</p>
+            )}
+            <p className="mt-1 text-xs text-black/50 dark:text-white/50">
+              {dateFormat.format(new Date(series.created_at))} 생성
+            </p>
+          </div>
         </div>
-        {series.style_note && (
-          <p className="mt-1 text-sm text-black/60 dark:text-white/60">{series.style_note}</p>
-        )}
-        <p className="mt-1 text-xs text-black/50 dark:text-white/50">
-          {dateFormat.format(new Date(series.created_at))} 생성
-        </p>
       </div>
 
       <Tabs seriesId={series.id} active={tab} />
